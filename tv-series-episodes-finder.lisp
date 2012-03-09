@@ -1,3 +1,5 @@
+(in-package :cl-user)
+
 (defpackage :tv-series-episodes-finder
   (:nicknames :tvs-find)
   (:use :cl :ol
@@ -10,7 +12,10 @@
    :season-nr
    :tv-series-wp
    :date->string
-   :string->date))
+   :string->date
+   :series-name
+   :tse-data
+   :download-all-episodes))
 
 (in-package :tvs-find)
 
@@ -19,11 +24,11 @@
 ;;; retrieval from wikipedia
 
 (defparameter tv-series-wp
-  '((tbbt   2 "http://en.wikipedia.org/wiki/List_of_The_Big_Bang_Theory_episodes" "The Big Bang Theory")
+  '((tbbt   2 "http://en.wikipedia.org/wiki/List_of_The_Big_Bang_Theory_episodes"   "The Big Bang Theory")
     (himym  3 "http://en.wikipedia.org/wiki/List_of_How_I_Met_Your_Mother_episodes" "How I Met Your Mother")
-    (mental 2 "http://en.wikipedia.org/wiki/Mentalist_episodes" "The Mentalist")
-    (flash  2 "http://en.wikipedia.org/wiki/List_of_Flashpoint_episodes" "Flashpoint")
-    (nikita 2 "http://en.wikipedia.org/wiki/List_of_Nikita_episodes" "Nikita")))
+    (mental 2 "http://en.wikipedia.org/wiki/Mentalist_episodes"                     "The Mentalist")
+    (flash  2 "http://en.wikipedia.org/wiki/List_of_Flashpoint_episodes"            "Flashpoint")
+    (nikita 2 "http://en.wikipedia.org/wiki/List_of_Nikita_episodes"                "Nikita")))
 
 (defun find-season-tables (document)
   ;; first table contains an overview of the seasons."
@@ -102,7 +107,7 @@
                 (find-episodes season)))
              (find-season-tables document))))
 
-(bind-multi ((slot episode-nr title air-date season-nr))
+(bind-multi ((slot episode-nr title air-date season-nr series-name))
   (defun slot (epi)
     (assoc1 'slot epi)))
 
@@ -115,10 +120,11 @@
 
 (defun download-all-episodes ()
   (setf tse-data
-        (mapcar
-         (lambda (x)
-           (cons (car x)
+        (apply #'concatenate 'vector
+         (mapcar
+          (lambda (x)
+            (map 'vector (lambda (y) (list* (first x) `(series-name . ,(fourth x)) y))
                  (strip-empty-episodes
-                  (find-all-episodes (car x)))))
-         tv-series-wp))
+                  (find-all-episodes (first x)))))
+          tv-series-wp)))
   (save-tse-data))
