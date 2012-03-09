@@ -15,6 +15,8 @@
 
 (setf cxml:*catalog* (cxml:make-catalog))
 
+;;; retrieval from wikipedia
+
 (defparameter tv-series-wp
   '((tbbt   2 "http://en.wikipedia.org/wiki/List_of_The_Big_Bang_Theory_episodes" "The Big Bang Theory")
     (himym  3 "http://en.wikipedia.org/wiki/List_of_How_I_Met_Your_Mother_episodes" "How I Met Your Mother")
@@ -53,22 +55,24 @@
 (defparameter wochentage #("Mo" "Di" "Mi" "Do" "Fr" "Sa" "So"))
 
 (defun date->string (date)
-  (format nil
-          "~A ~2,'0D.~2,'0D.~4,'0D"
-          (aref wochentage
-                (local-time:timestamp-day-of-week date))
-          (local-time:timestamp-day date)
-          (local-time:timestamp-month date)
-          (local-time:timestamp-year date)))
+  (if date
+      (format nil
+              "~A ~2,'0D.~2,'0D.~4,'0D"
+              (aref wochentage
+                    (local-time:timestamp-day-of-week date))
+              (local-time:timestamp-day date)
+              (local-time:timestamp-month date)
+              (local-time:timestamp-year date))
+      "???"))
 
 (defparameter date-column 2)
 
 ;; TODO deal with non-supplied date
 (defun extract-date (td)
-  (string->date
-   (dom:node-value
-    (dom:first-child
-     (first (query "span.published" td))))))
+  (aand (query "span.published" td)
+        (dom:node-value (dom:first-child (first it)))
+        (and (<= 10 (length it)) it)
+        (string->date it)))
 
 (defun find-episode-data (episode)
   (destructuring-bind
@@ -76,7 +80,9 @@
       (query "td" episode)
     `((total-nr   . ,(parse-integer (dom:node-value (dom:first-child total-nr))))
       (episode-nr . ,(parse-integer (dom:node-value (dom:first-child episode-nr))) )
-      (title      . ,(collect-text (first (query "b" title))))
+      (title      . ,(aif (query "b" title)
+                          (collect-text (first it))
+                          nil))
       (air-date   . ,(extract-date (nth date-column other))))))
 
 (defun find-all-episodes (id)
