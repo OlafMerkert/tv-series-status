@@ -7,9 +7,10 @@
    :episode-nr
    :title
    :air-date
-   :season-nr))
-
-;; required libraries: drakma cxml-dom css-selectors local-time
+   :season-nr
+   :tv-series-wp
+   :date->string
+   :string->date))
 
 (in-package :tvs-find)
 
@@ -100,3 +101,24 @@
                         (find-episode-data epi)))
                 (find-episodes season)))
              (find-season-tables document))))
+
+(bind-multi ((slot episode-nr title air-date season-nr))
+  (defun slot (epi)
+    (assoc1 'slot epi)))
+
+(defun strip-empty-episodes (epi-list)
+  (remove-if-not #'title epi-list))
+
+;;; local storage in cl-prevalence
+(prevalence-utils:define-prevalence-storage #P"/var/tmp/tse-data-store/")
+(define-storage tse-data)
+
+(defun download-all-episodes ()
+  (setf tse-data
+        (mapcar
+         (lambda (x)
+           (cons (car x)
+                 (strip-empty-episodes
+                  (find-all-episodes (car x)))))
+         tv-series-wp))
+  (save-tse-data))
