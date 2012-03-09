@@ -90,45 +90,28 @@
       ;; select the first entry
       (setf (combo-box-active show-selector) 0)
       ;; button action
-      (let* ((now (local-time:today))
-             (week-start (local-time:timestamp- now 4 :day))
-             (week-end   (local-time:timestamp+ now 4 :day)))
-        (labels ((future-filter (epi)
-                   (let ((date (air-date epi)))
-                     (or (null date)
-                         (local-time:timestamp<= now date))))
-                 (past-filter (epi)
-                   (let ((date (air-date epi)))
-                     (and date
-                          (local-time:timestamp<= date now))))
-                 (week-filter (epi)
-                   (let ((date (air-date epi)))
-                     (and date
-                          (local-time:timestamp<= week-start date week-end))))
-                 (apply-filters ()
-                   (let* ((selected-show-index (combo-box-active show-selector))
-                          (selected-show (car (nth (max 0 (- selected-show-index 1)) tv-series-wp)))
-                          (selected-range (cond ((toggle-button-active select-alles)
-                                                 (constantly t))
-                                                ((toggle-button-active select-past)
-                                                 #'past-filter)
-                                                ((toggle-button-active select-future)
-                                                 #'future-filter)
-                                                ((toggle-button-active select-week)
-                                                 #'week-filter))))
+      (labels ((apply-filters ()
+                 (let* ((selected-show-index (combo-box-active show-selector))
+                        (selected-show (if (zerop selected-show-index)
+                                           'alle
+                                           (first (nth (max 0 (- selected-show-index 1)) tv-series-wp))))
+                        (selected-range (cond ((toggle-button-active select-alles)
+                                               :alles)
+                                              ((toggle-button-active select-past)
+                                               :past)
+                                              ((toggle-button-active select-future)
+                                               :future)
+                                              ((toggle-button-active select-week)
+                                               :week))))
 
-                     (setf
-                      (slot-value (tree-view-model view) 'gtk::items)                     
-                      (if (zerop selected-show-index)
-                          (remove-if-not selected-range tse-data)
-                          (remove-if-not (lambda (x) (and (funcall selected-range x)
-                                                          (eq (series-id x) selected-show)))
-                                         tse-data))))))
-          (on-clicked download-button
-            (download-all-episodes)
-            (apply-filters))
-          (on-clicked refresh-button
-            (apply-filters))))
+                   (setf
+                    (slot-value (tree-view-model view) 'gtk::items)                     
+                    (filter-epi-array selected-range selected-show tse-data)))))
+        (on-clicked download-button
+          (download-all-episodes)
+          (apply-filters))
+        (on-clicked refresh-button
+          (apply-filters)))
       ;; on closing the window, move the edits back to the lektion.
       (connect-signal
        window "destroy"
@@ -136,3 +119,39 @@
          (leave-gtk-main)))
       (widget-show window))))
 
+;; filtering the array
+(defgeneric filter-epi-array (time-filter show-filter episodes))
+
+(defmethod filter-epi-array ((time-filter (eql :alles)) (show-filter (eql 'alle)) episodes)
+  episodes)
+
+(defun time-filter (time-filter)
+  (let* ((now (local-time:today))
+         (week-start (local-time:timestamp- now 4 :day))
+         (week-end   (local-time:timestamp+ now 4 :day)))
+    (ecase time-filter
+      (:alles (constantly t))
+      (:future (lambda (x) (aif (air-date x)
+                                (local-time:timestamp<= now it)
+                                t)))
+      (:past (lambda (x) (aif (air-date x)
+                                (local-time:timestamp<= it now)
+                                nil)))
+      (:week (lambda (x) (aif (air-date x)
+                              (local-time:timestamp<= week-start it week-end)
+                              nil))))))
+
+(defun show-filter (show)
+  (if (eq 'alle show)
+      (constantly t)
+      (lambda (x) (eq (series-id x) show))))
+
+(defmethod filter-epi-array (time-filter (show-filter (eql 'alle)) episodes)
+  (remove-if-not (time-filter time-filter) episodes))
+
+(defmethod filter-epi-array (time-filter show-filter episodes)
+  (let ((tf (time-filter  time-filter))
+        (sf (show-filter show-filter)))
+    (remove-if-not (lambda (x) (and (funcall sf x)
+                                    (funcall tf x)))
+                   episodes)))
