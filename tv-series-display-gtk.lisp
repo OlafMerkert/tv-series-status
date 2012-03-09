@@ -63,9 +63,9 @@
                :fill nil
                ;; Zeitraumauswahl
                ;; TODO Ausrichtung
-               (radio-button :label "Alles"       :var select-alles)  :expand nil 
-               (radio-button :label "Vergangene"  :var select-past    :toggled nil)   :expand nil 
-               (radio-button :label "Diese Woche" :var select-week   :toggled nil)   :expand nil 
+               (radio-button :label "Alles"       :var select-alles  :toggled t)   :expand nil
+               (radio-button :label "Vergangene"  :var select-past   :toggled nil) :expand nil
+               (radio-button :label "Diese Woche" :var select-week   :toggled nil) :expand nil
                (radio-button :label "Zukünftige"  :var select-future :toggled nil) :expand nil)
               :expand nil
               (h-button-box :x-align 0.1 ; TODO links ausgerichtete knöpfe
@@ -86,7 +86,49 @@
       (bind-multi ((col-title "Serie" "Se" "Ep" "Titel" "Erstausstrahlung")
                    (col-nr 0 1 2 3 4))
         (add-tree-view-column view col-title col-nr))
-      #|(add-cell-layout-column show-selector 0)|#
+      (add-cell-layout-column show-selector 0)
+      ;; select the first entry
+      (setf (combo-box-active show-selector) 0)
+      ;; button action
+      (let* ((now (local-time:today))
+             (week-start (local-time:timestamp- now 4 :day))
+             (week-end   (local-time:timestamp+ now 4 :day)))
+        (labels ((future-filter (epi)
+                   (let ((date (air-date epi)))
+                     (or (null date)
+                         (local-time:timestamp<= now date))))
+                 (past-filter (epi)
+                   (let ((date (air-date epi)))
+                     (and date
+                          (local-time:timestamp<= date now))))
+                 (week-filter (epi)
+                   (let ((date (air-date epi)))
+                     (and date
+                          (local-time:timestamp<= week-start date week-end))))
+                 (apply-filters ()
+                   (let* ((selected-show-index (combo-box-active show-selector))
+                          (selected-show (car (nth (max 0 (- selected-show-index 1)) tv-series-wp)))
+                          (selected-range (cond ((toggle-button-active select-alles)
+                                                 (constantly t))
+                                                ((toggle-button-active select-past)
+                                                 #'past-filter)
+                                                ((toggle-button-active select-future)
+                                                 #'future-filter)
+                                                ((toggle-button-active select-week)
+                                                 #'week-filter))))
+
+                     (setf
+                      (slot-value (tree-view-model view) 'gtk::items)                     
+                      (if (zerop selected-show-index)
+                          (remove-if-not selected-range tse-data)
+                          (remove-if-not (lambda (x) (and (funcall selected-range x)
+                                                          (eq (series-id x) selected-show)))
+                                         tse-data))))))
+          (on-clicked download-button
+            (download-all-episodes)
+            (apply-filters))
+          (on-clicked refresh-button
+            (apply-filters))))
       ;; on closing the window, move the edits back to the lektion.
       (connect-signal
        window "destroy"

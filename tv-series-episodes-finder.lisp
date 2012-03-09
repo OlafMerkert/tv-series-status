@@ -15,7 +15,8 @@
    :string->date
    :series-name
    :tse-data
-   :download-all-episodes))
+   :download-all-episodes
+   :series-id))
 
 (in-package :tvs-find)
 
@@ -107,7 +108,7 @@
                 (find-episodes season)))
              (find-season-tables document))))
 
-(bind-multi ((slot episode-nr title air-date season-nr series-name))
+(bind-multi ((slot episode-nr title air-date season-nr series-name series-id))
   (defun slot (epi)
     (assoc1 'slot epi)))
 
@@ -123,7 +124,7 @@
         (apply #'concatenate 'vector
          (mapcar
           (lambda (x)
-            (map 'vector (lambda (y) (list* (first x) `(series-name . ,(fourth x)) y))
+            (map 'vector (lambda (y) (list* `(series-id . ,(first x)) `(series-name . ,(fourth x)) y))
                  (strip-empty-episodes
                   (find-all-episodes (first x)))))
           tv-series-wp)))
