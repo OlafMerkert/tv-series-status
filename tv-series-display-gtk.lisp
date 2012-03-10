@@ -20,7 +20,7 @@
                (cons '(alle nil nil "Alle") tv-series-wp)))
     store))
 
-(defun make-episode-store (&optional (array tse-data))
+(defun make-episode-store (array)
   (let ((store (make-instance 'array-list-store)))
     (bind-multi ((field series-name season-nr episode-nr title)
                  (type #1="gchararray" #2="gint" #2# #1#))
@@ -29,6 +29,27 @@
     (setf (slot-value store 'gtk::items)
           array)
     store))
+
+(defun store-replace-all-items (store new-item-array)
+  (let ((l-old (store-items-count store))
+        (l-new (length new-item-array)))
+    ;; signal deletion of all the rows
+    (loop for i from (- l-old 1) downto 0 do
+         (let ((path (make-instance 'tree-path)))
+           (setf (tree-path-indices path) (list i))
+          (emit-signal store "row-deleted" path)))
+    ;; replace the array
+    (setf (slot-value store 'gtk::items) new-item-array)
+    ;; signal creation of all the new rows
+    (loop for i from 0 below l-new do
+         (let ((path (make-instance 'tree-path))
+               (iter (make-instance 'tree-iter)))
+           (setf (tree-path-indices path) (list i))
+           (setf (tree-iter-stamp iter) 0
+                 (tree-iter-user-data iter) i)
+          (emit-signal store "row-inserted"
+                       path iter)))
+    l-new))
 
 ;; todo put into ol-utils sometime
 (defmacro on-clicked (button &body body)
@@ -80,6 +101,8 @@
       (setf (radio-button-group select-past)   (radio-button-group select-alles)
             (radio-button-group select-week)   (radio-button-group select-past)
             (radio-button-group select-future) (radio-button-group select-week))
+      ;; load data from persistence if nothing is there
+      (unless tse-data (load-tse-data))
       ;; setup models and their views
       (setf (combo-box-model show-selector) (make-series-store))
       (setf (tree-view-model view) (make-episode-store tse-data))
@@ -104,8 +127,8 @@
                                               ((toggle-button-active select-week)
                                                :week))))
 
-                   (setf
-                    (slot-value (tree-view-model view) 'gtk::items)                     
+                   (store-replace-all-items
+                    (tree-view-model view)                     
                     (filter-epi-array selected-range selected-show tse-data)))))
         (on-clicked download-button
           (download-all-episodes)
