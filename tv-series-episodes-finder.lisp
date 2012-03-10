@@ -15,6 +15,8 @@
    :string->date
    :series-name
    :tse-data
+   :load-tse-data
+   :save-tse-data
    :download-all-episodes
    :series-id))
 
@@ -59,7 +61,7 @@
    (parse-integer (subseq string 5 7))
    (parse-integer (subseq string 0 4))))
 
-(defparameter wochentage #("Mo" "Di" "Mi" "Do" "Fr" "Sa" "So"))
+(defparameter wochentage #("So" "Mo" "Di" "Mi" "Do" "Fr" "Sa"))
 
 (defun date->string (date)
   (if date
