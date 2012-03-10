@@ -73,8 +73,8 @@
     (let-ui (gtk-window
              :type :toplevel
              :title "TV Serien Status Monitor"
-             :default-width 800
-             :default-height 600
+             :default-width 600
+             :default-height 800
              :var window
              (v-box
               (h-button-box
@@ -87,11 +87,8 @@
                (radio-button :label "Alles"       :var select-alles  :toggled t)   :expand nil
                (radio-button :label "Vergangene"  :var select-past   :toggled nil) :expand nil
                (radio-button :label "Diese Woche" :var select-week   :toggled nil) :expand nil
-               (radio-button :label "Zukünftige"  :var select-future :toggled nil) :expand nil)
-              :expand nil
-              (h-button-box :x-align 0.1 ; TODO links ausgerichtete knöpfe
-                            (button :label "Herunterladen" :var download-button) :expand nil
-                            (button :label "Aktualisieren" :var refresh-button)  :expand nil)
+               (radio-button :label "Zukünftige"  :var select-future :toggled nil) :expand nil
+               (button :label "Herunterladen" :var download-button) :expand nil)
               :expand nil
               (scrolled-window
                :hscrollbar-policy :automatic
@@ -133,8 +130,14 @@
         (on-clicked download-button
           (download-all-episodes)
           (apply-filters))
-        (on-clicked refresh-button
-          (apply-filters)))
+        (bind-multi ((button select-alles select-past select-future select-week))
+          (connect-signal button "toggled"
+                          (ilambda (b)
+                            (when (toggle-button-active button)
+                              (apply-filters)))))
+        (connect-signal show-selector "changed"
+                        (ilambda (c)
+                          (apply-filters))))
       ;; on closing the window, move the edits back to the lektion.
       (connect-signal
        window "destroy"
