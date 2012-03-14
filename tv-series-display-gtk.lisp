@@ -5,7 +5,9 @@
   (:shadowing-import-from :gtk :range)
   (:use :cl :ol
         :tvs-find
-        :gtk :gdk :gobject))
+        :gtk :gdk :gobject)
+  (:export
+   :filter-epi-array))
 
 (in-package :tvs-gtk)
 
@@ -151,10 +153,12 @@
 (defmethod filter-epi-array ((time-filter (eql :alles)) (show-filter (eql 'alle)) episodes)
   episodes)
 
+(defparameter time-distance 6)
+
 (defun time-filter (time-filter)
   (let* ((now (local-time:today))
-         (week-start (local-time:timestamp- now 4 :day))
-         (week-end   (local-time:timestamp+ now 4 :day)))
+         (week-start (local-time:timestamp- now time-distance :day))
+         (week-end   (local-time:timestamp+ now time-distance :day)))
     (ecase time-filter
       (:alles (constantly t))
       (:future (lambda (x) (aif (air-date x)
@@ -181,3 +185,18 @@
     (remove-if-not (lambda (x) (and (funcall sf x)
                                     (funcall tf x)))
                    episodes)))
+;; additionally sort the episodes by date, for week and future lists
+(defun time-compare (ts1 ts2)
+  (cond ((and (null ts1)
+              (null ts2)) nil)
+        ((null ts1) nil)
+        ((null ts2) t)
+        (t (local-time:timestamp<= ts1 ts2))))
+
+(defmethod filter-epi-array :around ((time-filter (eql :week)) show-filter episodes)
+  (stable-sort (call-next-method)
+        #'time-compare :key #'air-date))
+
+(defmethod filter-epi-array :around ((time-filter (eql :future)) show-filter episodes)
+  (stable-sort (call-next-method)
+        #'time-compare :key #'air-date))
