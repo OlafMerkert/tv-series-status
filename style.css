@@ -1,0 +1,45 @@
+/* (c) 2012 Olaf Merkert */
+
+body {
+    font-family: sans-serif;
+    font-size: 12pt;
+}
+
+.even {
+    background: lightgray;
+}
+.odd {
+    
+}
+table {
+    border-collapse: collapse;
+    margin: 1em;
+}
+th, td {
+    border: 1px solid black;
+    padding: 0.2em;
+}
+
+.number {
+    text-align: right;
+    font-family: monospace;
+}
+.date {
+    text-align: center;
+    font-style: italic;
+}
+.title {
+    padding-left: 0.5em;
+    padding-right: 3em;
+}
+
+h1, h2 {
+    margin-left: 2em;
+}
+
+form {
+    border: 1px inset gray;
+    display: inline;
+    padding: 0.5em;
+    margin: 0.3em;
+}
