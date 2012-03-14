@@ -4,12 +4,21 @@
   (:nicknames :tvs-web)
   (:use :cl :ol
         :tvs-find
-        :cl-who))
+        :tvs-filter
+        :cl-who)
+  (:export
+   :start-server))
 
 (in-package :tvs-web)
 
 (defun start-server ()
-  (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080)))
+  (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080))
+  (push
+   (hunchentoot:create-static-file-dispatcher-and-handler
+    "/tv-series/style.css"
+    #P"/home/olaf/Projekte/tv-series-status/style.css"
+    "text/css")
+   hunchentoot:*dispatch-table*))
 
 (defparameter *html-output* nil)
 (setf cl-who::*indent* 4)
@@ -26,7 +35,7 @@
 (hunchentoot:define-easy-handler (tv-series-display :uri "/tv-series")
     (series time-range)
   (let ((series-symbol (or (find series (mapcar #'first tv-series-wp) :key #'mkstr :test #'string-equal)
-                           'tvs-gtk::alle))
+                           'alle))
         (time-range-symbol (cond ((string-equal time-range "past") :past)
                                  ((string-equal time-range "future") :future)
                                  ((string-equal time-range "week") :week)
@@ -52,10 +61,10 @@
         (:tbody
          (setf *even-row* nil)
          (map nil #'episode-html-row
-              (tvs-gtk:filter-epi-array
+              (filter-epi-array
                time-range-symbol
                series-symbol
-               tse-data))))))))) ; todo filter anwenden
+               tse-data)))))))))
 
 (hunchentoot:define-easy-handler (tv-series-download :uri "/tv-series/download")
     ()
@@ -70,11 +79,10 @@
      (:select
       :name "series"
       (:option :value "alle" "Alle")
-      ;; todo preselection
       (loop for series in tv-series-wp do
          (htm (:option :value (first series)
                        :selected (if (eq (first series) current-series) "selected")
-                       (esc (fourth series)))))) ; todo identifier symbol
+                       (esc (fourth series))))))
      (:input :type "radio" :name "time-range" :value "alles"
              :id "time-alles"
              :checked (if (eq time-range :alles) "checked"))
@@ -112,10 +120,3 @@
      (:td :class "date"
           (esc (date->string (air-date episode))))
      (notf *even-row*))))
-
-(push
- (hunchentoot:create-static-file-dispatcher-and-handler
-  "/tv-series/style.css"
-  #P"/home/olaf/Projekte/tv-series-status/style.css"
-  "text/css")
- hunchentoot:*dispatch-table*)

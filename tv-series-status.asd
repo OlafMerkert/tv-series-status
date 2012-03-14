@@ -9,5 +9,6 @@
                "hunchentoot"
                "cl-who")
   :components ((:file "tv-series-episodes-finder")
+               (:file "tv-series-filter")
                (:file "tv-series-display-gtk")
                (:file "tv-series-display-web")))
