@@ -7,7 +7,8 @@
                "css-selectors"
                "local-time"
                "hunchentoot"
-               "cl-who")
+               "cl-who"
+               "cl-gtk2-gtk")
   :components ((:file "tv-series-episodes-finder")
                (:file "tv-series-filter")
                (:file "tv-series-display-gtk")
