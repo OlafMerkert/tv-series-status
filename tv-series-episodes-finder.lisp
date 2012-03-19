@@ -24,6 +24,11 @@
 
 (setf cxml:*catalog* (cxml:make-catalog))
 
+(defun dtd-resolver (pubid sysid)
+  (declare (ignore pubid))
+  (when (eq (puri:uri-scheme sysid) :http)
+   (drakma:http-request sysid :want-stream t)))
+
 ;;; retrieval from wikipedia
 
 (defparameter tv-series-wp
@@ -98,7 +103,8 @@
   (let ((document (cxml:parse
                    (drakma:http-request
                     (second (assoc1 id tv-series-wp)))
-                   (cxml-dom:make-dom-builder)))
+                   (cxml-dom:make-dom-builder)
+                   :entity-resolver #'dtd-resolver))
         (season-counter 0)
         (date-column (first (assoc1 id tv-series-wp))))
     (mappend (lambda (season)
