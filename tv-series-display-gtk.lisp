@@ -144,5 +144,5 @@
       (connect-signal
        window "destroy"
        (ilambda (w)
-         (leave-gtk-main)))
+         (gtk:leave-gtk-main)))
       (widget-show window))))
