@@ -1,0 +1,21 @@
+* About
+
+Scrape wikipedia pages for TV episodes information and display the results in a simple GTK2 app or on a webpage.
+
+* Installation
+
+Currently, this application is only tested on SBCL.  Other CL implementations might work, as long as cl-gtk2, cxml and hunchentoot are available.
+
+First, get quicklisp up and running to automatically download all necessary dependencies.  Check that you have the GTK libraries and header files required by cl-gtk2.  Make sure to set up the init file of your CL implementation.
+
+Currently, the most convenient way of installation is to clone ~ol-utils~ and ~tv-series-status~ into your ~<quicklisp>/local-projects~ folder.  When everything is in place, run ~./build-core.sh~ in order to compile a core for sbcl (not strictly necessary, but for instance cl-gtk2 takes a long time to load otherwise).
+
+* Running
+
+Once the core is built, just execute ~./tvs.sh~ to start the gtk interface (which is the only one currently allowing downloading of episode information).
+
+Currently, running outside of a UNIX environment is discouraged, as the downloaded data is automatically stored in the directory ~/var/tmp/tse-data-store/~.
+
+* Adding your TV Series to look for
+
+All the information for the scraper is contained in the special var ~tv-series-wp~ defined in ~tv-series-episodes-finder.lisp~, which is a list of TV Series spec.  A spec is a list of four entries, the first being an identifier symbol, the second the column number (0-indexed) of the release date column, the third the wikipedia page containing the tables with the episodes.  The fourth and last specifies a title for the entire series.
