@@ -24,6 +24,7 @@
 
 (setf cxml:*catalog* (cxml:make-catalog))
 
+;; TODO lookup on the web is very, very slow!!
 (defun dtd-resolver (pubid sysid)
   (declare (ignore pubid))
   (when (eq (puri:uri-scheme sysid) :http)
