@@ -3,7 +3,7 @@
   :depends-on ("ol-utils"
                "ol-data-utils"
                "drakma"
-               "cxml-dom"
+               "cxml"
                "css-selectors"
                "local-time"
                "hunchentoot"

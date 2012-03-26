@@ -1,6 +1,21 @@
 #!/bin/sh
 
-sbcl <<EOF
-(ql:quickload 'tv-series-status)
+if [ $1 = general ]; then
+    echo "General core"
+    sbcl <<EOF
+(ql:quickload '(drakma cxml css-selectors local-time hunchentoot cl-who cl-gtk2-gtk))
+(sb-ext:save-lisp-and-die "general.core")
+EOF
+elif [ $1 = tvs ]; then
+    echo "Tvs core based on general core"
+    sbcl --core general.core <<EOF
+(ql:quickload '(tv-series-status))
 (sb-ext:save-lisp-and-die "tvs.core")
 EOF
+else
+    echo "Tvs core"
+    sbcl <<EOF
+(ql:quickload '(tv-series-status))
+(sb-ext:save-lisp-and-die "tvs.core")
+EOF
+fi
