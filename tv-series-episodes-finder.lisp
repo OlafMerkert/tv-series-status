@@ -36,7 +36,7 @@
   '((tbbt   2 "http://en.wikipedia.org/wiki/List_of_The_Big_Bang_Theory_episodes"   "The Big Bang Theory")
     (himym  3 "http://en.wikipedia.org/wiki/List_of_How_I_Met_Your_Mother_episodes" "How I Met Your Mother")
     (taahm  3 "http://en.wikipedia.org/wiki/List_of_Two_and_a_Half_Men_episodes"    "Two and a Half Men")
-    (ng     2 "http://en.wikipedia.org/wiki/List_of_New_Girl_episodes"		    "New Girl")
+    #|(ngirl  2 "http://en.wikipedia.org/wiki/List_of_New_Girl_episodes"		    "New Girl")|# ; TODO has no season nr
     (mental 2 "http://en.wikipedia.org/wiki/Mentalist_episodes"                     "The Mentalist")
     (flash  2 "http://en.wikipedia.org/wiki/List_of_Flashpoint_episodes"            "Flashpoint")
     (nikita 2 "http://en.wikipedia.org/wiki/List_of_Nikita_episodes"                "Nikita")))
