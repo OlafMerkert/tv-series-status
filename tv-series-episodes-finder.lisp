@@ -41,6 +41,15 @@
     (flash  2 "http://en.wikipedia.org/wiki/List_of_Flashpoint_episodes"            "Flashpoint")
     (nikita 2 "http://en.wikipedia.org/wiki/List_of_Nikita_episodes"                "Nikita")))
 
+(defparameter tv-series-epguides
+  '((tbbt    "The Big Bang Theory"    "http://epguides.com/BigBangTheory/")
+    (himym   "How I Met Your Mother"  "http://epguides.com/HowIMetYourMother/")
+    (taahm   "Two and a Half Men"     "http://epguides.com/TwoandaHalfMen/")
+    (ngirl   "New Girl"               "http://epguides.com/NewGirl/")
+    (mental  "The Mentalist"          "http://epguides.com/Mentalist/")
+    (flash   "Flashpoint"             "http://epguides.com/Flashpoint/")
+    (nikita  "Nikita"                 "http://epguides.com/Nikita/")))
+
 (defun find-season-tables (document)
   ;; first table contains an overview of the seasons."
   (remove-if-not
