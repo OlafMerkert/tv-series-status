@@ -42,13 +42,20 @@
     (nikita 2 "http://en.wikipedia.org/wiki/List_of_Nikita_episodes"                "Nikita")))
 
 (defparameter tv-series-epguides
-  '((tbbt    "The Big Bang Theory"    "http://epguides.com/BigBangTheory/")
-    (himym   "How I Met Your Mother"  "http://epguides.com/HowIMetYourMother/")
-    (taahm   "Two and a Half Men"     "http://epguides.com/TwoandaHalfMen/")
-    (ngirl   "New Girl"               "http://epguides.com/NewGirl/")
-    (mental  "The Mentalist"          "http://epguides.com/Mentalist/")
-    (flash   "Flashpoint"             "http://epguides.com/Flashpoint/")
-    (nikita  "Nikita"                 "http://epguides.com/Nikita/")))
+  '((tbbt "The Big Bang Theory" "http://epguides.com/BigBangTheory/"
+     "http://epguides.com/common/exportToCSV.asp?rage=8511")
+    (himym "How I Met Your Mother" "http://epguides.com/HowIMetYourMother/"
+     "http://epguides.com/common/exportToCSV.asp?rage=3918")
+    (taahm "Two and a Half Men" "http://epguides.com/TwoandaHalfMen/"
+     "http://epguides.com/common/exportToCSV.asp?rage=6454")
+    (ngirl "New Girl" "http://epguides.com/NewGirl/"
+     "http://epguides.com/common/exportToCSV.asp?rage=28304")
+    (mental "The Mentalist" "http://epguides.com/Mentalist/"
+     "http://epguides.com/common/exportToCSV.asp?rage=18967")
+    (flash "Flashpoint" "http://epguides.com/Flashpoint/"
+     "http://epguides.com/common/exportToCSV.asp?rage=18531edited")
+    (nikita "Nikita" "http://epguides.com/Nikita/"
+     "http://epguides.com/common/exportToCSV.asp?rage=25189")))
 
 (defun find-season-tables (document)
   ;; first table contains an overview of the seasons."
@@ -128,29 +135,16 @@
                 (find-episodes season)))
              (find-season-tables document))))
 
-(defun find-all-episodes (id)
+(defun find-csv-url (id)
   (let* ((document (chtml:parse
                    (drakma:http-request
                     (second (assoc1 id tv-series-epguides)))
                    (cxml-dom:make-dom-builder)))
-         (pre (first (query "pre" document)))
-         (no-span (remove-if
-                   (lambda (x) (and (dom:element-p x)
-                                    (not (equal (dom:tag-name x) "a"))))
-                   (dom:child-nodes pre)))
-         (season-counter 0))
-    (flet ((find-next-season (start)
-             (let (next-bullet)
-               (values
-                (position-if
-                 (lambda (node)
-                   (and (dom:text-node-p node)
-                        (setf next-bullet
-                              (position #\bullet (dom:data node) :test #'char=))))
-                 no-span
-                 :start start)
-                (+ next-bullet #.(length " Season ")))))))
-    no-span))
+         (csv-url (find-if (lambda (x)
+                             (search "CSV" x))
+                           (mapcar (lambda (x) (dom:get-attribute x "href"))
+                                   (query "a[onclick]" document)))))
+    csv-url))
 
 (bind-multi ((slot episode-nr title air-date season-nr series-name series-id))
   (defun slot (epi)
