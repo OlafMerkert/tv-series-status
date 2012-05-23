@@ -7,7 +7,8 @@
         :tvs-find
         :tvs-filter
         :gtk :gdk :gobject)
-  (:export))
+  (:export
+   :tv-series-display))
 
 (in-package :tvs-gtk)
 
