@@ -7,6 +7,7 @@
                "closure-html"
                "css-selectors"
                "cl-csv"
+               "split-sequence"
                "local-time"
                "hunchentoot"
                "cl-who"

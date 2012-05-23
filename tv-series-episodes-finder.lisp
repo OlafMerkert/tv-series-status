@@ -159,9 +159,15 @@ of a selected series from epguides.com."
   '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
 (defmethod extract-transform ((type (eql 'air-date)) string)
-  (let ((day (parse-integer (subseq string 0 2)))
-        (month (+ 1 (position (subseq string 3 6) months :test #'string-equal)))
-        (year (parse-integer (subseq string 7))))
+  (let ((parts (split-sequence:split-sequence #\/ string))
+        day month year)
+    (case (length parts)
+      ((2) (setf day 17
+                 month (+ 1 (position (elt parts 0) months :test #'string-equal))
+                 year (parse-integer (elt parts 1))))
+      ((3) (setf day (parse-integer (elt parts 0))
+                 month (+ 1 (position (elt parts 1) months :test #'string-equal))
+                 year (parse-integer (elt parts 2)))))
     (local-time:encode-timestamp
      0 0 0 0
      day
