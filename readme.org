@@ -1,14 +1,12 @@
 * About TV Series Status
 
-Scrape wikipedia pages for TV episodes information and display the results in a simple GTK2 app or on a webpage.
+Download csv data from epguides.com pages for TV episodes information and display the results in a simple GTK2 app or on a webpage with custom filters.
 
 * Installation
 
 Currently, this application is only tested on SBCL.  Other CL implementations might work, as long as cl-gtk2, cxml and hunchentoot are available.
 
 First, get [[http://www.quicklisp.org/][quicklisp]] up and running to automatically download all necessary dependencies.  Check that you have the GTK libraries and header files required by cl-gtk2.  Make sure to set up the init file of your CL implementation.
-
-It is also recommended to install the XHTML DTDs onto your system, preferably via your distributions package manager.  This will significantly speed up the downloading.
 
 Currently, the most convenient way of installation is to clone ~ol-utils~ and ~tv-series-status~ into your ~<quicklisp>/local-projects~ folder.  When everything is in place, run ~make~ in order to compile a core for sbcl (not strictly necessary, but for instance cl-gtk2 takes a long time to load otherwise).
 
@@ -22,4 +20,4 @@ Currently, running outside of a UNIX environment is discouraged, as the download
 
 * Adding your TV Series to look for
 
-All the information for the scraper is contained in the special var ~tv-series-wp~ defined in ~tv-series-episodes-finder.lisp~, which is a list of TV Series spec.  A spec is a list of four entries, the first being an identifier symbol, the second the column number (0-indexed) of the release date column, the third the wikipedia page containing the tables with the episodes.  The fourth and last specifies a title for the entire series.
+All the information for the scraper is contained in the special var ~tv-series-epguides~ defined in ~tv-series-episodes-finder.lisp~, which is a list of TV Series spec.  A spec is a list of four entries, the first being an identifier symbol, the second the series title/name.  The third is a link to the main page of the series at epguides.com; calling ~find-csv-url~ on it will yield the url of the csv data, which has to be put in the fourth place.  The third entry is currently not strictly necessary for normal operations.

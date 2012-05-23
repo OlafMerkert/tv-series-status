@@ -10,7 +10,7 @@
    :title
    :air-date
    :season-nr
-   :tv-series-wp
+   :tv-series-epguides
    :date->string
    :string->date
    :series-name
@@ -32,15 +32,6 @@
 
 ;;; retrieval from wikipedia
 
-(defparameter tv-series-wp
-  '((tbbt   2 "http://en.wikipedia.org/wiki/List_of_The_Big_Bang_Theory_episodes"   "The Big Bang Theory")
-    (himym  3 "http://en.wikipedia.org/wiki/List_of_How_I_Met_Your_Mother_episodes" "How I Met Your Mother")
-    (taahm  3 "http://en.wikipedia.org/wiki/List_of_Two_and_a_Half_Men_episodes"    "Two and a Half Men")
-    #|(ngirl  2 "http://en.wikipedia.org/wiki/List_of_New_Girl_episodes"		    "New Girl")|# ; TODO has no season nr
-    (mental 2 "http://en.wikipedia.org/wiki/Mentalist_episodes"                     "The Mentalist")
-    (flash  2 "http://en.wikipedia.org/wiki/List_of_Flashpoint_episodes"            "Flashpoint")
-    (nikita 2 "http://en.wikipedia.org/wiki/List_of_Nikita_episodes"                "Nikita")))
-
 (defparameter tv-series-epguides
   '((tbbt "The Big Bang Theory" "http://epguides.com/BigBangTheory/"
      "http://epguides.com/common/exportToCSV.asp?rage=8511")
@@ -56,18 +47,6 @@
      "http://epguides.com/common/exportToCSV.asp?rage=18531edited")
     (nikita "Nikita" "http://epguides.com/Nikita/"
      "http://epguides.com/common/exportToCSV.asp?rage=25189")))
-
-(defun find-season-tables (document)
-  ;; first table contains an overview of the seasons."
-  (remove-if-not
-   (lambda (x)
-     (or (dom:has-attribute x "width")
-         (search "width" (dom:get-attribute x "style")
-                 :test #'char=)))
-   (rest (query "table.wikitable" document))))
-
-(defun find-episodes (season)
-  (query "tr.vevent" season))
 
 (defun collect-text (dom-node)
   (with-output-to-string (stream)

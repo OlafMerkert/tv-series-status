@@ -19,8 +19,8 @@
           (map 'vector
                (lambda (x)
                  (cons (first x)
-                       (fourth x)))
-               (cons '(alle nil nil "Alle") tv-series-wp)))
+                       (second x)))
+               (cons '(alle "Alle") tv-series-epguides)))
     store))
 
 (defun make-episode-store (array)
@@ -117,7 +117,7 @@
                  (let* ((selected-show-index (combo-box-active show-selector))
                         (selected-show (if (zerop selected-show-index)
                                            'alle
-                                           (first (nth (max 0 (- selected-show-index 1)) tv-series-wp))))
+                                           (first (nth (max 0 (- selected-show-index 1)) tv-series-epguides))))
                         (selected-range (cond ((toggle-button-active select-alles)
                                                :alles)
                                               ((toggle-button-active select-past)

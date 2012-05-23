@@ -34,7 +34,7 @@
 
 (hunchentoot:define-easy-handler (tv-series-display :uri "/tv-series")
     (series time-range)
-  (let ((series-symbol (or (find series (mapcar #'first tv-series-wp) :key #'mkstr :test #'string-equal)
+  (let ((series-symbol (or (find series (mapcar #'first tv-series-epguides) :key #'mkstr :test #'string-equal)
                            'alle))
         (time-range-symbol (cond ((string-equal time-range "past") :past)
                                  ((string-equal time-range "future") :future)
@@ -79,10 +79,10 @@
      (:select
       :name "series"
       (:option :value "alle" "Alle")
-      (loop for series in tv-series-wp do
+      (loop for series in tv-series-epguides do
          (htm (:option :value (first series)
                        :selected (if (eq (first series) current-series) "selected")
-                       (esc (fourth series))))))
+                       (esc (second series))))))
      (:input :type "radio" :name "time-range" :value "alles"
              :id "time-alles"
              :checked (if (eq time-range :alles) "checked"))
