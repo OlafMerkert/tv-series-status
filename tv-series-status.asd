@@ -6,6 +6,7 @@
                "cxml"
                "closure-html"
                "css-selectors"
+               "cl-csv"
                "local-time"
                "hunchentoot"
                "cl-who"

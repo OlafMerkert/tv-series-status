@@ -98,44 +98,14 @@
               (local-time:timestamp-year date))
       "???"))
 
-(defparameter date-column 2)
-
-;; TODO deal with non-supplied date
-(defun extract-date (td)
-  (aand (query "span.published" td)
-        (dom:node-value (dom:first-child (first it)))
-        (and (<= 10 (length it)) it)
-        (string->date it)))
-
-(defun find-episode-data (episode)
-  (destructuring-bind
-        (total-nr episode-nr title &rest other)
-      (query "td" episode)
-    `((total-nr   . ,(parse-integer (dom:node-value (dom:first-child total-nr))))
-      (episode-nr . ,(parse-integer (dom:node-value (dom:first-child episode-nr))) )
-      (title      . ,(aif (query "b" title)
-                          (collect-text (first it))
-                          nil))
-      (air-date   . ,(extract-date (nth date-column other))))))
-
 (defun find-all-episodes (id)
-  (let ((document (cxml:parse
-                   (drakma:http-request
-                    (second (assoc1 id tv-series-wp)))
-                   (cxml-dom:make-dom-builder)
-                   :entity-resolver #'dtd-resolver))
-        (season-counter 0)
-        (date-column (first (assoc1 id tv-series-wp))))
-    (mappend (lambda (season)
-               (incf season-counter)
-               (mapcar
-                (lambda (epi)
-                  (cons `(season-nr . ,season-counter)
-                        (find-episode-data epi)))
-                (find-episodes season)))
-             (find-season-tables document))))
+  (transform-csv
+   (download-csv id)))
+
 
 (defun find-csv-url (id)
+  "Very conveniently, one can download a csv data file of all episodes
+of a selected series from epguides.com."
   (let* ((document (chtml:parse
                    (drakma:http-request
                     (second (assoc1 id tv-series-epguides)))
@@ -145,6 +115,61 @@
                            (mapcar (lambda (x) (dom:get-attribute x "href"))
                                    (query "a[onclick]" document)))))
     csv-url))
+
+(defun download-csv (id)
+  "Download the csv and return it as lisp data."
+  (cl-csv:read-csv (drakma:http-request (third (assoc1 id tv-series-epguides)))))
+
+(defun transform-csv (csv)
+  (let* ((stripped-csv (remove-if #'length=1 csv))
+         ;; determine the columns containing the interesting information
+         (column-indices
+          (mapcar (lambda (x) (cons (car x)
+                                    (position (cdr x) (elt stripped-csv 0)
+                                              :test #'string-equal)))
+                  extract-table)))
+    (mapcar (lambda (row)
+              (mapcar (lambda (col)
+                        (cons (car col)
+                              (extract-transform (car col)
+                                                 (elt row (cdr col)))))
+                      column-indices))
+            (subseq stripped-csv 1))))
+
+(defparameter extract-table
+  '((season-nr  . "season")
+    (episode-nr . "episode")
+    (title      . "title")
+    (air-date   . "airdate")))
+
+(defgeneric extract-transform (type string)
+  (:documentation "depending on type, transform a given string to the
+  appropriate format, be it number, string or date."))
+
+(defmethod extract-transform ((type (eql 'season-nr)) string)
+  (parse-integer string))
+
+(defmethod extract-transform ((type (eql 'episode-nr)) string)
+  (parse-integer string))
+
+(defmethod extract-transform ((type (eql 'title)) string)
+   string)
+
+(defparameter months
+  '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
+
+(defmethod extract-transform ((type (eql 'air-date)) string)
+  (let ((day (parse-integer (subseq string 0 2)))
+        (month (+ 1 (position (subseq string 3 6) months :test #'string-equal)))
+        (year (parse-integer (subseq string 7))))
+    (local-time:encode-timestamp
+     0 0 0 0
+     day
+     month
+     ;; TODO what about year with four digits
+     (if (< year 30)
+         (+ 2000 year)
+         (+ 1900 year)))))
 
 (bind-multi ((slot episode-nr title air-date season-nr series-name series-id))
   (defun slot (epi)
@@ -162,8 +187,7 @@
         (apply #'concatenate 'vector
          (mapcar
           (lambda (x)
-            (map 'vector (lambda (y) (list* `(series-id . ,(first x)) `(series-name . ,(fourth x)) y))
-                 (strip-empty-episodes
-                  (find-all-episodes (first x)))))
+            (map 'vector (lambda (y) (list* `(series-id . ,(first x)) `(series-name . ,(second x)) y))
+                 (find-all-episodes (first x))))
           tv-series-wp)))
   (save-tse-data))
