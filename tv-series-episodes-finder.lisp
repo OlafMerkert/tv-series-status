@@ -142,15 +142,20 @@ of a selected series from epguides.com."
     (title      . "title")
     (air-date   . "airdate")))
 
+(defun parse-integer/non-number (string)
+  (if (string= string "")
+      0
+      (parse-integer string)))
+
 (defgeneric extract-transform (type string)
   (:documentation "depending on type, transform a given string to the
   appropriate format, be it number, string or date."))
 
 (defmethod extract-transform ((type (eql 'season-nr)) string)
-  (parse-integer string))
+  (parse-integer/non-number string))
 
 (defmethod extract-transform ((type (eql 'episode-nr)) string)
-  (parse-integer string))
+  (parse-integer/non-number string))
 
 (defmethod extract-transform ((type (eql 'title)) string)
    string)
@@ -162,12 +167,15 @@ of a selected series from epguides.com."
   (let ((parts (split-sequence:split-sequence #\/ string))
         day month year)
     (case (length parts)
-      ((2) (setf day 17
+      ((2) (setf day   17
                  month (+ 1 (position (elt parts 0) months :test #'string-equal))
-                 year (parse-integer (elt parts 1))))
-      ((3) (setf day (parse-integer (elt parts 0))
+                 year  (parse-integer (elt parts 1))))
+      ((3) (setf day   (parse-integer (elt parts 0))
                  month (+ 1 (position (elt parts 1) months :test #'string-equal))
-                 year (parse-integer (elt parts 2)))))
+                 year  (parse-integer (elt parts 2))))
+      (t (setf day   17
+               month 1
+               year  70)))
     (local-time:encode-timestamp
      0 0 0 0
      day
@@ -195,5 +203,5 @@ of a selected series from epguides.com."
           (lambda (x)
             (map 'vector (lambda (y) (list* `(series-id . ,(first x)) `(series-name . ,(second x)) y))
                  (find-all-episodes (first x))))
-          tv-series-wp)))
+          tv-series-epguides)))
   (save-tse-data))
