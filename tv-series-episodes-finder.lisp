@@ -128,6 +128,30 @@
                 (find-episodes season)))
              (find-season-tables document))))
 
+(defun find-all-episodes (id)
+  (let* ((document (chtml:parse
+                   (drakma:http-request
+                    (second (assoc1 id tv-series-epguides)))
+                   (cxml-dom:make-dom-builder)))
+         (pre (first (query "pre" document)))
+         (no-span (remove-if
+                   (lambda (x) (and (dom:element-p x)
+                                    (not (equal (dom:tag-name x) "a"))))
+                   (dom:child-nodes pre)))
+         (season-counter 0))
+    (flet ((find-next-season (start)
+             (let (next-bullet)
+               (values
+                (position-if
+                 (lambda (node)
+                   (and (dom:text-node-p node)
+                        (setf next-bullet
+                              (position #\bullet (dom:data node) :test #'char=))))
+                 no-span
+                 :start start)
+                (+ next-bullet #.(length " Season ")))))))
+    no-span))
+
 (bind-multi ((slot episode-nr title air-date season-nr series-name series-id))
   (defun slot (epi)
     (assoc1 'slot epi)))

@@ -4,6 +4,7 @@
                "ol-data-utils"
                "drakma"
                "cxml"
+               "closure-html"
                "css-selectors"
                "local-time"
                "hunchentoot"
