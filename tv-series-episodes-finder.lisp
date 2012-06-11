@@ -49,6 +49,8 @@
      "http://epguides.com/common/exportToCSV.asp?rage=25189")))
 
 (defun collect-text (dom-node)
+  "Just print out all the text-nodes which are descendants of the
+given DOM-NODE."
   (with-output-to-string (stream)
     (labels ((rec (dom-node)
                (if (dom:text-node-p dom-node)
@@ -67,6 +69,7 @@
 (defparameter wochentage #("So" "Mo" "Di" "Mi" "Do" "Fr" "Sa"))
 
 (defun date->string (date)
+  "local-time object -> WT Ta.Mo.Jahr or ??? if date is NIL."
   (if date
       (format nil
               "~A ~2,'0D.~2,'0D.~4,'0D"
@@ -78,13 +81,15 @@
       "???"))
 
 (defun find-all-episodes (id)
+  "Download the episode information for the series with ID."
   (transform-csv
    (download-csv id)))
 
 
 (defun find-csv-url (id)
   "Very conveniently, one can download a csv data file of all episodes
-of a selected series from epguides.com."
+of a selected series from epguides.com.  This function extracts the
+url of the csv data from the overview page of the series."
   (let* ((document (chtml:parse
                    (drakma:http-request
                     (second (assoc1 id tv-series-epguides)))
@@ -100,6 +105,8 @@ of a selected series from epguides.com."
   (cl-csv:read-csv (drakma:http-request (third (assoc1 id tv-series-epguides)))))
 
 (defun transform-csv (csv)
+  "Map the column indices of the csv data to the lisp column symbols,
+then iterate the rows and collect the lisp data."
   (let* ((stripped-csv (remove-if #'length=1 csv))
          ;; determine the columns containing the interesting information
          (column-indices
@@ -119,9 +126,11 @@ of a selected series from epguides.com."
   '((season-nr  . "season")
     (episode-nr . "episode")
     (title      . "title")
-    (air-date   . "airdate")))
+    (air-date   . "airdate"))
+  "Mapping of lisp column symbols and csv table headers.")
 
 (defun parse-integer/non-number (string)
+  "Parse an integer from a string, interpret the empty string as 0."
   (if (string= string "")
       0
       (parse-integer string)))
@@ -176,6 +185,8 @@ of a selected series from epguides.com."
 (define-storage tse-data)
 
 (defun download-all-episodes ()
+  "Iterate over the predefined list of series, download the episode
+information and store it both in a special var and in prevalence."
   (setf tse-data
         (apply #'concatenate 'vector
          (mapcar
