@@ -13,6 +13,8 @@
 (in-package :tvs-gtk)
 
 (defun make-series-store ()
+  "Create an ARRAY-LIST-STORE for gtk, filled with the names of the
+tv-series, read from a special variable."
   (let ((store (make-instance 'array-list-store)))
     (store-add-column store "gchararray" #'cdr)
     (setf (slot-value store 'gtk::items)
@@ -24,6 +26,8 @@
     store))
 
 (defun make-episode-store (array)
+  "Create an ARRAY-LIST-STORE for gtk, with columns for the crucial
+information of a particular episode."
   (let ((store (make-instance 'array-list-store)))
     (bind-multi ((field series-name season-nr episode-nr title)
                  (type #1="gchararray" #2="gint" #2# #1#))
@@ -34,6 +38,9 @@
     store))
 
 (defun store-replace-all-items (store new-item-array)
+  "Replace the backing array of an ARRAY-LIST-STORE with
+NEW-ITEM-ARRAY and send signals for the deletion of all previous
+entries, and signals for the insertion of all the new entries."
   (let ((l-old (store-items-count store))
         (l-new (length new-item-array)))
     ;; signal deletion of all the rows
@@ -56,10 +63,12 @@
 
 ;; todo put into ol-utils sometime
 (defmacro on-clicked (button &body body)
+  "Abbreviation for defining a closure called upon a button press."
   `(connect-signal ,button "clicked"
                    (ilambda (b) ,@body)))
 
 (defun add-tree-view-column (view title col-index)
+  "Properly add a text column to the tree-view"
   (let ((column   (make-instance 'tree-view-column :title title))
         (renderer (make-instance 'cell-renderer-text)))
     (tree-view-column-pack-start     column renderer)
@@ -72,6 +81,9 @@
     (cell-layout-add-attribute  view renderer "text" col-index)))
 
 (defun tv-series-display ()
+  "Display a graphical interface for downloading and filtering
+episodes information.  It is possible to filter for series name and
+date range, only listing past, future or episodes from this week."
   (within-main-loop
     (let-ui (gtk-window
              :type :toplevel
