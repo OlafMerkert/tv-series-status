@@ -46,7 +46,9 @@
     (flash "Flashpoint" "http://epguides.com/Flashpoint/"
      "http://epguides.com/common/exportToCSV.asp?rage=18531edited")
     (nikita "Nikita" "http://epguides.com/Nikita/"
-     "http://epguides.com/common/exportToCSV.asp?rage=25189")))
+     "http://epguides.com/common/exportToCSV.asp?rage=25189")
+    (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
+     "http://epguides.com/common/exportToCSV.asp?rage=23686")))
 
 (defun collect-text (dom-node)
   (with-output-to-string (stream)
