@@ -131,7 +131,7 @@
                     (tree-view-model view)                     
                     (filter-epi-array selected-range selected-show tse-data)))))
         (on-clicked download-button
-          (download-all-episodes)
+                    (sb-thread:make-thread #'download-all-episodes)
           (apply-filters))
         (bind-multi ((button select-alles select-past select-future select-week))
           (connect-signal button "toggled"
