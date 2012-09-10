@@ -30,25 +30,47 @@
   (when (eq (puri:uri-scheme sysid) :http)
    (drakma:http-request sysid :want-stream t)))
 
-;;; retrieval from wikipedia
+(defclass/f tv-series ()
+  (identifier
+   series-title))
+
+(defclass/f tv-series-epguides (tv-series)
+  (information-page-url
+   episode-list-url))
+
+(create-standard-print-object tv-series identifier)
+
+;;; retrieval from epguides
+
+(defun make-series-epguides (x)
+  (destructuring-bind (identifier title information-page-url episode-list-url) x
+    (make-instance 'tv-series-epguides
+                   :identifier identifier
+                   :series-title title
+                   :information-page-url information-page-url
+                   :episode-list-url episode-list-url)))
 
 (defparameter tv-series-epguides
-  '((tbbt "The Big Bang Theory" "http://epguides.com/BigBangTheory/"
-     "http://epguides.com/common/exportToCSV.asp?rage=8511")
-    (himym "How I Met Your Mother" "http://epguides.com/HowIMetYourMother/"
-     "http://epguides.com/common/exportToCSV.asp?rage=3918")
-    (taahm "Two and a Half Men" "http://epguides.com/TwoandaHalfMen/"
-     "http://epguides.com/common/exportToCSV.asp?rage=6454")
-    (ngirl "New Girl" "http://epguides.com/NewGirl/"
-     "http://epguides.com/common/exportToCSV.asp?rage=28304")
-    (mental "The Mentalist" "http://epguides.com/Mentalist/"
-     "http://epguides.com/common/exportToCSV.asp?rage=18967")
-    (flash "Flashpoint" "http://epguides.com/Flashpoint/"
-     "http://epguides.com/common/exportToCSV.asp?rage=18531edited")
-    (nikita "Nikita" "http://epguides.com/Nikita/"
-     "http://epguides.com/common/exportToCSV.asp?rage=25189")
-    (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
-     "http://epguides.com/common/exportToCSV.asp?rage=23686")))
+  (mapcar #'make-series-epguides
+   '((tbbt "The Big Bang Theory" "http://epguides.com/BigBangTheory/"
+      "http://epguides.com/common/exportToCSV.asp?rage=8511")
+     (himym "How I Met Your Mother" "http://epguides.com/HowIMetYourMother/"
+      "http://epguides.com/common/exportToCSV.asp?rage=3918")
+     (taahm "Two and a Half Men" "http://epguides.com/TwoandaHalfMen/"
+      "http://epguides.com/common/exportToCSV.asp?rage=6454")
+     (ngirl "New Girl" "http://epguides.com/NewGirl/"
+      "http://epguides.com/common/exportToCSV.asp?rage=28304")
+     (mental "The Mentalist" "http://epguides.com/Mentalist/"
+      "http://epguides.com/common/exportToCSV.asp?rage=18967")
+     (flash "Flashpoint" "http://epguides.com/Flashpoint/"
+      "http://epguides.com/common/exportToCSV.asp?rage=18531edited")
+     (nikita "Nikita" "http://epguides.com/Nikita/"
+      "http://epguides.com/common/exportToCSV.asp?rage=25189")
+     (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
+      "http://epguides.com/common/exportToCSV.asp?rage=23686"))))
+
+(defun get-series-by-id (id)
+  (find id tv-series-epguides :key #'identifier))
 
 (defun collect-text (dom-node)
   (with-output-to-string (stream)
@@ -58,6 +80,7 @@
                    (map 'nil #'rec (dom:child-nodes dom-node)))))
       (rec dom-node))))
 
+;; date formatting
 (defun string->date (string)
   "YYYY-MM-DD -> local-time object"
   (local-time:encode-timestamp
@@ -79,9 +102,10 @@
               (local-time:timestamp-year date))
       "???"))
 
-(defun find-all-episodes (id)
+(defun find-all-episodes (tv-series)
   (transform-csv
-   (download-csv id)))
+   (download-csv tv-series)
+   tv-series))
 
 
 (defun find-csv-url (id)
@@ -89,7 +113,7 @@
 of a selected series from epguides.com."
   (let* ((document (chtml:parse
                    (drakma:http-request
-                    (second (assoc1 id tv-series-epguides)))
+                    (information-page-url (get-series-by-id id)))
                    (cxml-dom:make-dom-builder)))
          (csv-url (find-if (lambda (x)
                              (search "CSV" x))
@@ -97,31 +121,44 @@ of a selected series from epguides.com."
                                    (query "a[onclick]" document)))))
     csv-url))
 
-(defun download-csv (id)
+(defun download-csv (tv-series)
   "Download the csv and return it as lisp data."
-  (cl-csv:read-csv (drakma:http-request (third (assoc1 id tv-series-epguides)))))
+  (cl-csv:read-csv (drakma:http-request (episode-list-url tv-series))))
 
-(defun transform-csv (csv)
+
+(defclass/f episode (tv-series prevalence-utils:prevailing)
+  (season-nr
+   episode-nr
+   episode-title
+   air-date))
+
+(create-standard-print-object episode identifier (season-nr episode-nr))
+
+(defun transform-csv (csv tv-series)
   (let* ((stripped-csv (remove-if #'length=1 csv))
          ;; determine the columns containing the interesting information
          (column-indices
-          (mapcar (lambda (x) (cons (car x)
-                                    (position (cdr x) (elt stripped-csv 0)
-                                              :test #'string-equal)))
+          (mapcar (lambda (x) 
+                    (position (third x) (elt stripped-csv 0)
+                              :test #'string-equal))
                   extract-table)))
-    (mapcar (lambda (row)
-              (mapcar (lambda (col)
-                        (cons (car col)
-                              (extract-transform (car col)
-                                                 (elt row (cdr col)))))
-                      column-indices))
-            (subseq stripped-csv 1))))
+    (map 'vector
+         (lambda (row)
+           (apply #'make-instance 'episode
+                  :identifier (identifier tv-series)
+                  :series-title (series-title tv-series)
+                  (mapcan (lambda (col x)
+                            (list (second x)
+                                  (extract-transform (first x)
+                                                     (elt row col))))
+                          column-indices extract-table)))
+         (subseq stripped-csv 1))))
 
 (defparameter extract-table
-  '((season-nr  . "season")
-    (episode-nr . "episode")
-    (title      . "title")
-    (air-date   . "airdate")))
+  '((season-nr   :season-nr      "season")
+    (episode-nr  :episode-nr     "episode")
+    (title       :episode-title  "title")
+    (air-date    :air-date       "airdate")))
 
 (defun parse-integer/non-number (string)
   (if (string= string "")
@@ -166,12 +203,9 @@ of a selected series from epguides.com."
             (+ 2000 year))
            (t (+ 1900 year))))))
 
-(bind-multi ((slot episode-nr title air-date season-nr series-name series-id))
-  (defun slot (epi)
-    (assoc1 'slot epi)))
 
 (defun strip-empty-episodes (epi-list)
-  (remove-if-not #'title epi-list))
+  (remove-if-not #'episode-title epi-list))
 
 ;;; local storage in cl-prevalence
 (prevalence-utils:define-prevalence-storage #P"/var/tmp/tse-data-store/")
@@ -181,8 +215,6 @@ of a selected series from epguides.com."
   (setf tse-data
         (apply #'concatenate 'vector
          (mapcar
-          (lambda (x)
-            (map 'vector (lambda (y) (list* `(series-id . ,(first x)) `(series-name . ,(second x)) y))
-                 (find-all-episodes (first x))))
+          #'find-all-episodes
           tv-series-epguides)))
   (save-tse-data))
