@@ -14,18 +14,16 @@
 
 (defun make-series-store ()
   (let ((store (make-instance 'array-list-store)))
-    (store-add-column store "gchararray" #'cdr)
+    (store-add-column store "gchararray" #'series-title)
     (setf (slot-value store 'gtk::items)
-          (map 'vector
-               (lambda (x)
-                 (cons (first x)
-                       (second x)))
-               (cons '(alle "Alle") tv-series-epguides)))
+          (list->array
+           (list* (make-instance 'tv-series :identifier 'alle :series-title "Alle")
+                  tv-series-epguides)))
     store))
 
 (defun make-episode-store (array)
   (let ((store (make-instance 'array-list-store)))
-    (bind-multi ((field series-name season-nr episode-nr title)
+    (bind-multi ((field series-title season-nr episode-nr episode-title)
                  (type #1="gchararray" #2="gint" #2# #1#))
       (store-add-column store type #'field))
     (store-add-column store #1# (compose #'date->string #'air-date))
@@ -117,7 +115,8 @@
                  (let* ((selected-show-index (combo-box-active show-selector))
                         (selected-show (if (zerop selected-show-index)
                                            'alle
-                                           (first (nth (max 0 (- selected-show-index 1)) tv-series-epguides))))
+                                           (identifier (elt tv-series-epguides
+                                                            (max 0 (- selected-show-index 1))))))
                         (selected-range (cond ((toggle-button-active select-alles)
                                                :alles)
                                               ((toggle-button-active select-past)
