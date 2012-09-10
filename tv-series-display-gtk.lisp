@@ -14,18 +14,16 @@
 
 (defun make-series-store ()
   (let ((store (make-instance 'array-list-store)))
-    (store-add-column store "gchararray" #'cdr)
+    (store-add-column store "gchararray" #'series-title)
     (setf (slot-value store 'gtk::items)
-          (map 'vector
-               (lambda (x)
-                 (cons (first x)
-                       (second x)))
-               (cons '(alle "Alle") tv-series-epguides)))
+          (list->array
+           (list* (make-instance 'tv-series :identifier 'alle :series-title "Alle")
+                  tv-series-epguides)))
     store))
 
 (defun make-episode-store (array)
   (let ((store (make-instance 'array-list-store)))
-    (bind-multi ((field series-name season-nr episode-nr title)
+    (bind-multi ((field series-title season-nr episode-nr episode-title)
                  (type #1="gchararray" #2="gint" #2# #1#))
       (store-add-column store type #'field))
     (store-add-column store #1# (compose #'date->string #'air-date))
@@ -55,9 +53,17 @@
     l-new))
 
 ;; todo put into ol-utils sometime
-(defmacro on-clicked (button &body body)
-  `(connect-signal ,button "clicked"
-                   (ilambda (b) ,@body)))
+(defmacro define-signals (&rest signal-names)
+  `(progn
+     ,@(mapcar
+        (lambda (signal-name)
+          `(defmacro ,(symb 'on- signal-name) (object &body body)
+             `(connect-signal ,object ,',(format nil "~(~A~)" signal-name)
+                              (ilambda (event) ,@body))))
+        signal-names)))
+
+(define-signals clicked toggled changed destroy)
+
 
 (defun add-tree-view-column (view title col-index)
   (let ((column   (make-instance 'tree-view-column :title title))
@@ -117,7 +123,8 @@
                  (let* ((selected-show-index (combo-box-active show-selector))
                         (selected-show (if (zerop selected-show-index)
                                            'alle
-                                           (first (nth (max 0 (- selected-show-index 1)) tv-series-epguides))))
+                                           (identifier (elt tv-series-epguides
+                                                            (max 0 (- selected-show-index 1))))))
                         (selected-range (cond ((toggle-button-active select-alles)
                                                :alles)
                                               ((toggle-button-active select-past)
@@ -131,19 +138,13 @@
                     (tree-view-model view)                     
                     (filter-epi-array selected-range selected-show tse-data)))))
         (on-clicked download-button
-          (download-all-episodes)
+          (sb-thread:make-thread #'download-all-episodes)
           (apply-filters))
         (bind-multi ((button select-alles select-past select-future select-week))
-          (connect-signal button "toggled"
-                          (ilambda (b)
-                            (when (toggle-button-active button)
-                              (apply-filters)))))
-        (connect-signal show-selector "changed"
-                        (ilambda (c)
-                          (apply-filters))))
+          (on-toggled button
+            (when (toggle-button-active button)
+              (apply-filters))))
+        (on-changed show-selector (apply-filters)))
       ;; on closing the window, move the edits back to the lektion.
-      (connect-signal
-       window "destroy"
-       (ilambda (w)
-         (gtk:leave-gtk-main)))
+      (on-destroy window (gtk:leave-gtk-main))
       (widget-show window))))

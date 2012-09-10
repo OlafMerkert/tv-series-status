@@ -34,7 +34,8 @@
 
 (hunchentoot:define-easy-handler (tv-series-display :uri "/tv-series")
     (series time-range)
-  (let ((series-symbol (or (find series (mapcar #'first tv-series-epguides) :key #'mkstr :test #'string-equal)
+  (let ((series-symbol (aif (find series tv-series-epguides :key (lambda (x) (mkstr (identifier x))) :test #'string-equal)
+                            (identifier it)
                            'alle))
         (time-range-symbol (cond ((string-equal time-range "past") :past)
                                  ((string-equal time-range "future") :future)
@@ -80,9 +81,10 @@
       :name "series"
       (:option :value "alle" "Alle")
       (loop for series in tv-series-epguides do
-         (htm (:option :value (first series)
-                       :selected (if (eq (first series) current-series) "selected")
-                       (esc (second series))))))
+         (htm (:option :value (identifier series)
+                       :selected (if (eq (identifier series) current-series)
+                                     "selected")
+                       (esc (series-title series))))))
      (:input :type "radio" :name "time-range" :value "alles"
              :id "time-alles"
              :checked (if (eq time-range :alles) "checked"))
@@ -110,13 +112,13 @@
   (with-html
     (:tr :class (if *even-row* "even" "odd")
      (:td :class "title"
-          (esc (series-name episode)))
+          (esc (series-title episode)))
      (:td :class "number"
           (fmt "~D" (season-nr episode)))
      (:td :class "number"
           (fmt "~2,'0D" (episode-nr episode)))
      (:td :class "title"
-          (esc (title episode)))
+          (esc (episode-title episode)))
      (:td :class "date"
           (esc (date->string (air-date episode))))
      (notf *even-row*))))
