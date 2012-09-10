@@ -53,9 +53,17 @@
     l-new))
 
 ;; todo put into ol-utils sometime
-(defmacro on-clicked (button &body body)
-  `(connect-signal ,button "clicked"
-                   (ilambda (b) ,@body)))
+(defmacro define-signals (&rest signal-names)
+  `(progn
+     ,@(mapcar
+        (lambda (signal-name)
+          `(defmacro ,(symb 'on- signal-name) (object &body body)
+             `(connect-signal ,object ,',(format nil "~(~A~)" signal-name)
+                              (ilambda (event) ,@body))))
+        signal-names)))
+
+(define-signals clicked toggled changed destroy)
+
 
 (defun add-tree-view-column (view title col-index)
   (let ((column   (make-instance 'tree-view-column :title title))
@@ -130,19 +138,13 @@
                     (tree-view-model view)                     
                     (filter-epi-array selected-range selected-show tse-data)))))
         (on-clicked download-button
-                    (sb-thread:make-thread #'download-all-episodes)
+          (sb-thread:make-thread #'download-all-episodes)
           (apply-filters))
         (bind-multi ((button select-alles select-past select-future select-week))
-          (connect-signal button "toggled"
-                          (ilambda (b)
-                            (when (toggle-button-active button)
-                              (apply-filters)))))
-        (connect-signal show-selector "changed"
-                        (ilambda (c)
-                          (apply-filters))))
+          (on-toggled button
+            (when (toggle-button-active button)
+              (apply-filters))))
+        (on-changed show-selector (apply-filters)))
       ;; on closing the window, move the edits back to the lektion.
-      (connect-signal
-       window "destroy"
-       (ilambda (w)
-         (gtk:leave-gtk-main)))
+      (on-destroy window (gtk:leave-gtk-main))
       (widget-show window))))
