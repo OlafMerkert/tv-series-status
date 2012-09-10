@@ -161,10 +161,10 @@ of a selected series from epguides.com."
      0 0 0 0
      day
      month
-     ;; TODO what about year with four digits
-     (if (< year 30)
-         (+ 2000 year)
-         (+ 1900 year)))))
+     (cond ((>= year 100) year)
+           ((< year 30)
+            (+ 2000 year))
+           (t (+ 1900 year))))))
 
 (bind-multi ((slot episode-nr title air-date season-nr series-name series-id))
   (defun slot (epi)
