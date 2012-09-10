@@ -5,9 +5,7 @@
   (:use :cl :ol
         :css-selectors)
   (:export
-   :total-nr
    :episode-nr
-   :title
    :air-date
    :season-nr
    :tv-series-epguides
@@ -18,7 +16,11 @@
    :load-tse-data
    :save-tse-data
    :download-all-episodes
-   :series-id))
+   :tv-series
+   :identifier
+   :series-title
+   :episode
+   :episode-title))
 
 (in-package :tvs-find)
 
