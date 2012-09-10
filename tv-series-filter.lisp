@@ -24,7 +24,7 @@
          (week-start (local-time:timestamp- now time-distance :day))
          (week-end   (local-time:timestamp+ now time-distance :day)))
     (ecase time-filter
-      (:alles (constantly t))
+      (:alles (values (constantly t) t))
       (:future (lambda (x) (aif (air-date x)
                                 (local-time:timestamp<= now it)
                                 t)))
@@ -37,8 +37,8 @@
 
 (defun show-filter (show)
   (if (eq 'alle show)
-      (constantly t)
-      (lambda (x) (eq (series-id x) show))))
+      (values (constantly t) t)
+      (lambda (x) (eq (identifier x) show))))
 
 (defmethod filter-epi-array (time-filter (show-filter (eql 'alle)) episodes)
   (remove-if-not (time-filter time-filter) episodes))
@@ -49,6 +49,7 @@
     (remove-if-not (lambda (x) (and (funcall sf x)
                                     (funcall tf x)))
                    episodes)))
+
 ;; additionally sort the episodes by date, for week and future lists
 (defun time-compare (ts1 ts2)
   (cond ((and (null ts1)
