@@ -75,6 +75,8 @@
   (find id tv-series-epguides :key #'identifier))
 
 (defun collect-text (dom-node)
+  "Just print out all the text-nodes which are descendants of the
+given DOM-NODE."
   (with-output-to-string (stream)
     (labels ((rec (dom-node)
                (if (dom:text-node-p dom-node)
@@ -94,6 +96,7 @@
 (defparameter wochentage #("So" "Mo" "Di" "Mi" "Do" "Fr" "Sa"))
 
 (defun date->string (date)
+  "local-time object -> WT Ta.Mo.Jahr or ??? if date is NIL."
   (if date
       (format nil
               "~A ~2,'0D.~2,'0D.~4,'0D"
@@ -105,6 +108,7 @@
       "???"))
 
 (defun find-all-episodes (tv-series)
+  "Download the episode information for the TV-SERIES."
   (transform-csv
    (download-csv tv-series)
    tv-series))
@@ -112,7 +116,8 @@
 
 (defun find-csv-url (id)
   "Very conveniently, one can download a csv data file of all episodes
-of a selected series from epguides.com."
+of a selected series from epguides.com.  This function extracts the
+url of the csv data from the overview page of the series."
   (let* ((document (chtml:parse
                    (drakma:http-request
                     (information-page-url (get-series-by-id id)))
@@ -163,6 +168,7 @@ of a selected series from epguides.com."
     (air-date    :air-date       "airdate")))
 
 (defun parse-integer/non-number (string)
+  "Parse an integer from a string, interpret the empty string as 0."
   (if (string= string "")
       0
       (parse-integer string)))
@@ -214,6 +220,8 @@ of a selected series from epguides.com."
 (define-storage tse-data)
 
 (defun download-all-episodes ()
+  "Iterate over the predefined list of series, download the episode
+information and store it both in a special var and in prevalence."
   (setf tse-data
         (apply #'concatenate 'vector
          (mapcar
