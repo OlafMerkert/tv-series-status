@@ -5,37 +5,20 @@
 
 (in-package :tv-series-display-clim)
 
-(defclass tv-series ()
-  ((identifier :initarg :identifier
-               :accessor identifier)
-   (title      :initarg :title
-               :initform ""
-               :accessor title))
-  (:documentation "TODO"))
+(define-presentation-type date-range ())
 
-(defmethod equals (a b)
-  nil)
+(define-presentation-method presentation-typep (object (type date-range))
+  (typep object '(member :alles :future :past :week)))
 
-(defmethod equals ((a tv-series) (b tv-series))
-  (eq (identifier a) (identifier b)))
-
-(defparameter tv-series
-  (list*
-   (make-instance 'tv-series
-                  :identifier 'all
-                  :title "Alle")
-   (mapcar (lambda (x)
-             (make-instance 'tv-series
-                            :identifier (first x)
-                            :title (second x)))
-           tvs-find:tv-series-epguides)))
-
-(defclass date-range ()
-  ((descriptor :initarg :descriptor
-               :initform :alles
-               :accessor descriptor))
-  (:documentation "TODO"))
-
+(define-presentation-method present
+    (object (type date-range) stream view &key)
+  (princ
+   (ecase object
+     (:alles "Alles")
+     (:future "Zukünftige")
+     (:past "Vergangene")
+     (:week "Diese Woche"))
+   stream))
 
 (defparameter date-ranges
   (mapcar (lambda (x) (make-instance 'time-range :descriptor x))
