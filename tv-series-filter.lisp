@@ -1,6 +1,7 @@
 (in-package :cl-user)
 
 (defpackage :tv-series-filter
+  (:shadow :filter :sort)
   (:nicknames :tvs-filter)
   (:use :cl :ol
         :tvs-find)
@@ -10,57 +11,71 @@
 
 (in-package :tvs-filter)
 
+(defclass sort-filter ()
+  ((sort? :initarg :sort?
+          :initform nil
+          :accessor sort?))
+  (:documentation "abstract class for filter objects that encourage sorting."))
 
-;; filtering the array
-(defgeneric filter-epi-array (time-filter show-filter episodes)
-  (:documentation "Filter a list of episodes by given time ranges or
-  show identifier (a symbol)."))
+(defgeneric test (filter object)
+  (:documentation "test whether the OBJECT falls through the FILTER,
+  return t if it is to be kept."))
 
-(defmethod filter-epi-array ((time-filter (eql :alles)) (show-filter (eql 'alle)) episodes)
-  episodes)
+(defgeneric trivial-filter-p (filter)
+  (:documentation "return t when FILTER would not remove any objects."))
 
-(defparameter time-distance 6
-  "How many days in the past and in the future belong to the current
-  week.")
+(defgeneric sort (filter object-seq)
+  (:documentation "sort the object-seq according to the sort rule of the filter."))
 
-(defun time-filter (time-filter)
-  "TIME-FILTER must be one of :alles, :future, :past or :week.  This
-function then returns a function that tests whether the AIR-DATE of
-its argument is in the proper time range.  An unspecified AIR-DATE is
-considered to be future."
-  (let* ((now (local-time:today))
-         (week-start (local-time:timestamp- now time-distance :day))
-         (week-end   (local-time:timestamp+ now time-distance :day)))
-    (ecase time-filter
-      (:alles (values (constantly t) t))
-      (:future (lambda (x) (aif (air-date x)
-                                (local-time:timestamp<= now it)
-                                t)))
-      (:past (lambda (x) (aif (air-date x)
-                                (local-time:timestamp<= it now)
-                                nil)))
-      (:week (lambda (x) (aif (air-date x)
-                              (local-time:timestamp<= week-start it week-end)
-                              nil))))))
+(defmethod sort (filter object-seq)
+  object-seq)
 
-(defun show-filter (show)
-  "Return a function that compares the SERIES-ID of its argument with
-SHOW.  'alle acts as a wildcard."
-  (if (eq 'alle show)
-      (values (constantly t) t)
-      (lambda (x) (eq (identifier x) show))))
+;;; filtering for shows
+(defclass show-filter (sort-filter)
+  ((show :initarg :show
+         :accessor show))
+  (:documentation "only display episodes from one show"))
 
-(defmethod filter-epi-array (time-filter (show-filter (eql 'alle)) episodes)
-  (remove-if-not (time-filter time-filter) episodes))
+(defmethod trivial-filter-p ((filter show-filter))
+  (eq (show filter) 'alle))
 
-(defmethod filter-epi-array (time-filter show-filter episodes)
-  (let ((tf (time-filter  time-filter))
-        (sf (show-filter show-filter)))
-    (remove-if-not (lambda (x) (and (funcall sf x)
-                                    (funcall tf x)))
-                   episodes)))
+(defmethod test ((filter show-filter) (episode episode))
+  (or (eq (show filter) 'alle)
+      (eq (show filter) (identifier episode))
+      ;; TODO support for tv-series instance instead of identifier symbols
+      ))
 
-;; additionally sort the episodes by date, for week and future lists
+(defun make-show-filter (show)
+  (make-instance 'show-filter :show show))
+
+
+;;; filtering for dates
+(defclass date-filter (sort-filter)
+  ((begin          :initarg :begin
+                   :initform nil
+                   :accessor begin)
+   (end            :initarg :end
+                   :initform nil
+                   :accessor end)
+   (remove-unspec :initarg :remove-unspec
+                  :initform nil
+                  :accessor remove-unspec))
+  (:documentation "only display episodes within a given time range."))
+
+(defmethod trivial-filter-p ((filter date-filter))
+  (not (or (begin filter)
+           (end filter)
+           (remove-unspec filter))))
+
+(defmethod test ((filter date-filter) (episode episode))
+  (with-slots (begin end remove-unspec) filter
+    (with-slots (air-date) episode
+      (cond ((not air-date) remove-unspec)
+            ((and begin end) (local-time:timestamp<= begin air-date end))
+            (end (local-time:timestamp<= air-date end))
+            (begin (local-time:timestamp<= begin air-date))
+            (t t)))))
+
 (defun time-compare (ts1 ts2)
   "Compare two timestamps stably, where NIL is considered the infinite future."
   (cond ((and (null ts1)
@@ -69,10 +84,40 @@ SHOW.  'alle acts as a wildcard."
         ((null ts2) t)
         (t (local-time:timestamp<= ts1 ts2))))
 
-(defmethod filter-epi-array :around ((time-filter (eql :week)) show-filter episodes)
-  (stable-sort (call-next-method)
-        #'time-compare :key #'air-date))
+(defmethod sort ((filter date-filter) object-seq)
+  (if (sort? filter)
+      (stable-sort object-seq #'time-compare :key #'air-date)
+      object-seq))
 
-(defmethod filter-epi-array :around ((time-filter (eql :future)) show-filter episodes)
-  (stable-sort (call-next-method)
-        #'time-compare :key #'air-date))
+(defparameter time-distance 6
+  "How many days in the past and in the future belong to the current
+  week.")
+
+(defun make-date-filter (keyword)
+  (ecase keyword
+    (:alles (make-instance 'date-filter))
+    (:future (make-instance 'date-filter
+                            :begin (local-time:today) ; TODO early
+                            :remove-unspec t
+                            :sort? t))
+    (:past (make-instance 'date-filter
+                          :end (local-time:today) ; TODO late
+                          ))
+    (:week (make-instance 'date-filter
+                          :begin (local-time:timestamp- (local-time:today) time-distance :day)
+                          :end   (local-time:timestamp+ (local-time:today) time-distance :day)
+                          :sort? t))))
+
+;;; actual filtering work
+(defun filter-epi-array (time-filter show-filter episodes)
+  (let ((filters (remove-if #'trivial-filter-p
+                            (list (make-date-filter time-filter)
+                                  (make-show-filter show-filter)))))
+    (setf episodes
+          (remove-if-not
+           (lambda (x)
+             (every (lambda (f) (test f x)) filters))
+           episodes))
+    (dolist (f filters)
+      (setf episodes (sort f episodes)))
+    episodes))
