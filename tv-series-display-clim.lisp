@@ -14,7 +14,7 @@
 
 (define-presentation-method present (number (type season-number) stream view &key)
   (declare (ignore view))
-  (princ number stream))
+  (princ (if (zerop number) "Alle" number) stream))
 
 (define-presentation-method present (series (type tv-series) stream view &key)
   (declare (ignore view))
@@ -36,21 +36,25 @@
 (define-application-frame tvs-display ()
   ((selected-date-range :initform :alles
                         :accessor selected-date-range)
-   (selected-series :initform 'alle
-                    :accessor selected-series)
-   (selected-season :initform 0         ; zero means all seasons
-                    :accessor selected-season))
+   (selected-series     :initform 'alle
+                        :accessor selected-series)
+   (selected-season     :initform 0         ; zero means all seasons
+                        :accessor selected-season))
   (:panes
-   (selection-pane clim-stream-pane :width 900 :height 50
-                   :display-function 'display-selection-filters)
-   (app-pane :application
-             :width 900 :heigth 600
-             :display-function 'display-episode-list)
-   (int :interactor :width 900 :height 200))
+   (selection-pane  clim-stream-pane :width 900 :height 50
+                    :display-function 'display-selection-filters)
+   (series-pane     clim-stream-pane :width 320 :heigth 700
+                    :display-function 'display-series-list)
+   (app-pane        :application
+                    :width 900 :heigth 700
+                    :display-function 'display-episode-list)
+   (int             :interactor :width 900 :height 100))
   (:layouts (default (vertically ()
-                       selection-pane
-                       app-pane
-                       int))))
+                       (50 selection-pane)
+                       (+fill+ (horizontally ()
+                                 (200 series-pane)
+                                 (+fill+ app-pane)))
+                       (100 int)))))
 
 (defun print-date (date &optional stream)
   (format stream
@@ -60,56 +64,74 @@
           (local-time:timestamp-year  date)))
 
 (defun display-episode-list (frame pane)
-  (declare (ignore pane))
-  (let ((stream (frame-standard-output frame)))
-    (formatting-table (stream :x-spacing 25)
-      ;; TODO provide a header
-      (loop for episode across
-           (tvs-filter:filter-epi-array (selected-date-range *application-frame*)
-                                        (selected-series *application-frame*)
-                                        (selected-season *application-frame*)
-                                        tse-data) do
-           (formatting-row (stream)
-             (with-slots (series-title
-                          season-nr episode-nr
-                          episode-title
-                          air-date) episode
-               (formatting-cell (stream)
-                 (present episode 'tv-series :stream stream))
-               (formatting-cell (stream)
-                 (present season-nr 'season-number :stream stream))
-               (formatting-cell (stream)
-                 (princ episode-nr stream))
-               (formatting-cell (stream)
-                 (princ episode-title stream))
-               (formatting-cell (stream)
-                 (print-date air-date stream))))))))
+  
+  (declare (ignore frame))
+  (formatting-table (pane :x-spacing 25)
+    ;; provide a header
+    ;; TODO keep header from scrolling away
+    (with-text-face (pane :bold)
+     (formatting-row (pane)
+       (formatting-cell (pane) (princ "Serie" pane))
+       (formatting-cell (pane) (princ "Se" pane))
+       (formatting-cell (pane) (princ "Ep" pane))
+       (formatting-cell (pane) (princ "Titel" pane))
+       (formatting-cell (pane) (princ "Erstausstrahlung" pane))))
+    (loop for episode across
+         (tvs-filter:filter-epi-array (selected-date-range *application-frame*)
+                                      (selected-series *application-frame*)
+                                      (selected-season *application-frame*)
+                                      tse-data) do
+         (formatting-row (pane)
+           (with-slots (series-title
+                        season-nr episode-nr
+                        episode-title
+                        air-date) episode
+             (formatting-cell (pane)
+               (present episode 'tv-series :stream pane))
+             (formatting-cell (pane)
+               (present season-nr 'season-number :stream pane))
+             (formatting-cell (pane)
+               (princ episode-nr pane))
+             (formatting-cell (pane)
+               (princ episode-title pane))
+             (formatting-cell (pane)
+               (print-date air-date pane)))))))
 
 (defun display-selection-filters (frame pane)
   (declare (ignore frame))
-  (formatting-table (pane :x-spacing 30)
+  (formatting-table (pane :x-spacing 40)
+    ;; give choices for date ranges
     (formatting-row (pane)
-      ;; give choices for date ranges
-      (dolist (range date-ranges)
+      (with-text-face (pane :bold)
         (formatting-cell (pane)
-          (present range 'date-range :stream pane))))
-    (formatting-row (pane)
-      ;; give choices for tv-series
-      (dolist (series (list* all-series tv-series-epguides))
-        (formatting-cell (pane)
-          (with-output-as-presentation (pane series 'tv-series)
-            (princ (series-title series) pane)))))
-    (formatting-row (pane)
-      ;; give choices for season-number
+          (princ "Zeiträume:" pane)))
       (formatting-cell (pane)
-        (with-output-as-presentation (pane 0 'season-number)
-          (princ "Alle" pane)))
-      (dotimes+ (i 1 11) ()
-          (formatting-cell (pane)
-            (with-output-as-presentation (pane i 'season-number)
-              (format pane "~D" i)))))))
+        (dolist (range date-ranges)
+          (present range 'date-range :stream pane)
+          (princ "  " pane)))
+      )
+    ;; give choices for season-number
+    (formatting-row (pane)
+      (with-text-face (pane :bold)
+        (formatting-cell (pane)
+          (princ "Season:" pane)))
+      (formatting-cell (pane)
+        (dotimes (i 11) 
+          (present i 'season-number :stream pane)
+          (princ "  " pane))))))
 
-
+(defun display-series-list (frame pane)
+  (declare (ignore frame))
+  ;; give choices for tv-series
+  (formatting-table (pane)
+    (formatting-row (pane)
+      (with-text-face (pane :bold)
+        (formatting-cell (pane)
+          (princ "Serien:" pane))))
+    (dolist (series (list* all-series tv-series-epguides))
+      (formatting-row (pane)
+        (formatting-cell (pane)
+          (present series 'tv-series :stream pane))))))
 
 
 (define-tvs-display-command (com-quit :name t) ()
