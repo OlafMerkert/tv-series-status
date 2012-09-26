@@ -108,11 +108,30 @@
                           :end   (local-time:timestamp+ (local-time:today) time-distance :day)
                           :sort? t))))
 
+;;; filtering for seasons
+(defclass season-filter (sort-filter)
+  ((season-nr :initarg :season-nr
+              :initform nil
+              :accessor season-nr))
+  (:documentation "only display episodes from the selected season"))
+
+(defmethod trivial-filter-p ((filter season-filter))
+  (not (season-nr filter)))
+
+(defmethod test ((filter season-filter) (episode episode))
+  (or (not (season-nr filter))
+      (= (season-nr filter)
+         (season-nr episode))))
+
+(defun make-season-filter (season-nr)
+  (make-instance 'season-filter :season-nr season-nr))
+
 ;;; actual filtering work
-(defun filter-epi-array (time-filter show-filter episodes)
+(defun filter-epi-array (time-filter show-filter season-filter episodes)
   (let ((filters (remove-if #'trivial-filter-p
                             (list (make-date-filter time-filter)
-                                  (make-show-filter show-filter)))))
+                                  (make-show-filter show-filter)
+                                  (make-season-filter season-filter)))))
     (setf episodes
           (remove-if-not
            (lambda (x)
@@ -121,3 +140,4 @@
     (dolist (f filters)
       (setf episodes (sort f episodes)))
     episodes))
+
