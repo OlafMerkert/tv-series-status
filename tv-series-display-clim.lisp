@@ -128,6 +128,10 @@
   (setf (selected-date-range *application-frame*)
         date-range))
 
+(define-tvs-display-command (com-download-info :name "Lade aktuelle Sendezeiten"
+                                               :menu t) ()
+  (sb-thread:make-thread #'download-all-episodes))
+
 (define-presentation-method present (series (type tv-series) stream view &key)
   (declare (ignore view))
   (princ (series-title series) stream))
