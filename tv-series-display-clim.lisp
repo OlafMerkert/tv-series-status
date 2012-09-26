@@ -8,6 +8,8 @@
 
 (define-presentation-type date-range ())
 
+(define-presentation-type season-number ())
+
 (defparameter date-ranges 
   '(:alles :past :week :future))
 
@@ -40,9 +42,6 @@
                        app-pane
                        int))))
 
-(define-presentation-type season-nr ()
-  :inherit-from 'integer)
-
 (defun print-date (date &optional stream)
   (format stream
           "~2,'0D.~2,'0D.~4,'0D"
@@ -71,7 +70,7 @@
                  (with-output-as-presentation (stream episode 'tv-series)
                    (princ series-title stream)))
                (formatting-cell (stream)
-                 (with-output-as-presentation (stream season-nr 'season-nr)
+                 (with-output-as-presentation (stream season-nr 'season-number)
                    (princ season-nr stream)))
                (formatting-cell (stream)
                  (princ episode-nr stream))
@@ -95,13 +94,13 @@
           (with-output-as-presentation (pane series 'tv-series)
             (princ (series-title series) pane)))))
     (formatting-row (pane)
-      ;; give choices for season-nr
+      ;; give choices for season-number
       (formatting-cell (pane)
-        (with-output-as-presentation (pane 0 'season-nr)
+        (with-output-as-presentation (pane 0 'season-number)
           (princ "Alle" pane)))
       (dotimes+ (i 1 11) ()
           (formatting-cell (pane)
-            (with-output-as-presentation (pane i 'season-nr)
+            (with-output-as-presentation (pane i 'season-number)
               (format pane "~D" i)))))))
 
 
@@ -119,7 +118,7 @@
 
 (define-tvs-display-command (com-series-season :name "Nach Season filtern"
                                                :menu t)
-    ((season 'season-nr))
+    ((season 'season-number))
   (setf (selected-season *application-frame*)
         season))
 
