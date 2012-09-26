@@ -56,7 +56,11 @@
     (formatting-table (stream :x-spacing 25)
       ;; TODO provide a header
       ;; TODO also apply filters
-      (loop for episode across tse-data do
+      (loop for episode across
+           (tvs-filter:filter-epi-array (selected-date-range *application-frame*)
+                                        (selected-series *application-frame*)
+                                        (selected-season *application-frame*)
+                                        tse-data) do
            (formatting-row (stream)
              (with-slots (series-title
                           season-nr episode-nr
@@ -65,10 +69,10 @@
                ;; TODO enrich with presentations
                (formatting-cell (stream)
                  (with-output-as-presentation (stream episode 'tv-series)
-                  (princ series-title stream)))
+                   (princ series-title stream)))
                (formatting-cell (stream)
                  (with-output-as-presentation (stream season-nr 'season-nr)
-                  (princ season-nr stream)))
+                   (princ season-nr stream)))
                (formatting-cell (stream)
                  (princ episode-nr stream))
                (formatting-cell (stream)
@@ -86,10 +90,19 @@
           (present range 'date-range :stream pane))))
     (formatting-row (pane)
       ;; give choices for tv-series
-      (dolist (series tv-series-epguides)
+      (dolist (series (list* all-series tv-series-epguides))
         (formatting-cell (pane)
           (with-output-as-presentation (pane series 'tv-series)
-            (princ (series-title series) pane)))))))
+            (princ (series-title series) pane)))))
+    (formatting-row (pane)
+      ;; give choices for season-nr
+      (formatting-cell (pane)
+        (with-output-as-presentation (pane 0 'season-nr)
+          (princ "Alle" pane)))
+      (dotimes+ (i 1 11) ()
+          (formatting-cell (pane)
+            (with-output-as-presentation (pane i 'season-nr)
+              (format pane "~D" i)))))))
 
 
 (defun tv-series-display ()
@@ -115,3 +128,7 @@
     ((date-range 'date-range))
   (setf (selected-date-range *application-frame*)
         date-range))
+
+(define-presentation-method present (series (type tv-series) stream view &key)
+  (declare (ignore view))
+  (princ (series-title series) stream))

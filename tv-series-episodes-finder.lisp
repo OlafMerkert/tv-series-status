@@ -20,7 +20,9 @@
    :identifier
    :series-title
    :episode
-   :episode-title))
+   :episode-title
+   :alle
+   :all-series))
 
 (in-package :tvs-find)
 
@@ -70,6 +72,11 @@
       "http://epguides.com/common/exportToCSV.asp?rage=25189")
      (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
       "http://epguides.com/common/exportToCSV.asp?rage=23686"))))
+
+(defparameter all-series
+  (make-instance 'tv-series
+                 :identifier 'alle
+                 :series-title "Alle"))
 
 (defun get-series-by-id (id)
   (find id tv-series-epguides :key #'identifier))
