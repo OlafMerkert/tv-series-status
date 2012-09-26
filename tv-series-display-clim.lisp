@@ -2,13 +2,23 @@
   (:nicknames :tvs-clim)
   (:use :ol :clim :clim-lisp
         :tvs-find)
-  (:export))
+  (:export
+   :tv-series-display))
 
 (in-package :tv-series-display-clim)
 
 (define-presentation-type date-range ())
 
-(define-presentation-type season-number ())
+(define-presentation-type season-number ()
+  :inherit-from 'integer)
+
+(define-presentation-method present (number (type season-number) stream view &key)
+  (declare (ignore view))
+  (princ number stream))
+
+(define-presentation-method present (series (type tv-series) stream view &key)
+  (declare (ignore view))
+  (princ (series-title series) stream))
 
 (defparameter date-ranges 
   '(:alles :past :week :future))
@@ -54,7 +64,6 @@
   (let ((stream (frame-standard-output frame)))
     (formatting-table (stream :x-spacing 25)
       ;; TODO provide a header
-      ;; TODO also apply filters
       (loop for episode across
            (tvs-filter:filter-epi-array (selected-date-range *application-frame*)
                                         (selected-series *application-frame*)
@@ -65,13 +74,10 @@
                           season-nr episode-nr
                           episode-title
                           air-date) episode
-               ;; TODO enrich with presentations
                (formatting-cell (stream)
-                 (with-output-as-presentation (stream episode 'tv-series)
-                   (princ series-title stream)))
+                 (present episode 'tv-series :stream stream))
                (formatting-cell (stream)
-                 (with-output-as-presentation (stream season-nr 'season-number)
-                   (princ season-nr stream)))
+                 (present season-nr 'season-number :stream stream))
                (formatting-cell (stream)
                  (princ episode-nr stream))
                (formatting-cell (stream)
@@ -104,25 +110,24 @@
               (format pane "~D" i)))))))
 
 
-(defun tv-series-display ()
-  (run-frame-top-level (make-instance 'tvs-display)))
+
 
 (define-tvs-display-command (com-quit :name t) ()
   (frame-exit *application-frame*))
 
-(define-tvs-display-command (com-series-filter :name "Nach Serie filtern"
+(define-tvs-display-command (com-filter-series :name "Nach Serie filtern"
                                                :menu t)
     ((tv-series 'tv-series))
   (setf (selected-series *application-frame*)
         (identifier tv-series)))
 
-(define-tvs-display-command (com-series-season :name "Nach Season filtern"
+(define-tvs-display-command (com-filter-season :name "Nach Season filtern"
                                                :menu t)
     ((season 'season-number))
   (setf (selected-season *application-frame*)
         season))
 
-(define-tvs-display-command (com-series-date :name "Nach Datum filtern"
+(define-tvs-display-command (com-filter-date :name "Nach Datum filtern"
                                              :menu t)
     ((date-range 'date-range))
   (setf (selected-date-range *application-frame*)
@@ -132,19 +137,19 @@
                                                :menu t) ()
   (sb-thread:make-thread #'download-all-episodes))
 
-(define-presentation-method present (series (type tv-series) stream view &key)
-  (declare (ignore view))
-  (princ (series-title series) stream))
-
 ;;; translate clicks to commands
 (define-presentation-to-command-translator filter-series
-    (tv-series com-series-filter tvs-display)
+    (tv-series com-filter-series tvs-display)
     (object) (list object))
 
 (define-presentation-to-command-translator filter-season
-    (season-number com-season-filter tvs-display)
+    (season-number com-filter-season tvs-display)
     (object) (list object))
 
 (define-presentation-to-command-translator filter-date
-    (date-range com-series-date tvs-display)
+    (date-range com-filter-date tvs-display)
     (object) (list object))
+
+;;; the function to run the application
+(defun tv-series-display ()
+  (run-frame-top-level (make-instance 'tvs-display)))
