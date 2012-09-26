@@ -134,23 +134,24 @@
           (present series 'tv-series :stream pane))))))
 
 
-(define-tvs-display-command (com-quit :name t) ()
+(define-tvs-display-command (com-quit :name "Beenden"
+                                      :menu t) ()
   (frame-exit *application-frame*))
 
 (define-tvs-display-command (com-filter-series :name "Nach Serie filtern"
-                                               :menu t)
+                                               :menu nil)
     ((tv-series 'tv-series))
   (setf (selected-series *application-frame*)
         (identifier tv-series)))
 
 (define-tvs-display-command (com-filter-season :name "Nach Season filtern"
-                                               :menu t)
+                                               :menu nil)
     ((season 'season-number))
   (setf (selected-season *application-frame*)
         season))
 
 (define-tvs-display-command (com-filter-date :name "Nach Datum filtern"
-                                             :menu t)
+                                             :menu nil)
     ((date-range 'date-range))
   (setf (selected-date-range *application-frame*)
         date-range))
