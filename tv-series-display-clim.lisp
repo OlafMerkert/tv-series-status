@@ -26,7 +26,7 @@
                         :accessor selected-date-range)
    (selected-series :initform 'alle
                     :accessor selected-series)
-   (selected-season :initform nil
+   (selected-season :initform 0         ; zero means all seasons
                     :accessor selected-season))
   (:panes
    (selection-pane clim-stream-pane :width 900 :height 50

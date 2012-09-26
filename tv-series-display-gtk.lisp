@@ -147,7 +147,7 @@ date range, only listing past, future or episodes from this week."
 
                    (store-replace-all-items
                     (tree-view-model view)                     
-                    (filter-epi-array selected-range selected-show nil tse-data)))))
+                    (filter-epi-array selected-range selected-show 0 tse-data)))))
         (on-clicked download-button
           (sb-thread:make-thread #'download-all-episodes)
           (apply-filters))

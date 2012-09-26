@@ -111,15 +111,16 @@
 ;;; filtering for seasons
 (defclass season-filter (sort-filter)
   ((season-nr :initarg :season-nr
-              :initform nil
+              :initform 0
               :accessor season-nr))
   (:documentation "only display episodes from the selected season"))
 
 (defmethod trivial-filter-p ((filter season-filter))
-  (not (season-nr filter)))
+  "0 means all seasons."
+  (zerop (season-nr filter)))
 
 (defmethod test ((filter season-filter) (episode episode))
-  (or (not (season-nr filter))
+  (or (zerop (season-nr filter))
       (= (season-nr filter)
          (season-nr episode))))
 

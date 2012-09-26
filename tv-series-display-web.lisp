@@ -65,7 +65,7 @@
               (filter-epi-array
                time-range-symbol
                series-symbol
-               nil
+               0
                tse-data)))))))))
 
 (hunchentoot:define-easy-handler (tv-series-download :uri "/tv-series/download")
