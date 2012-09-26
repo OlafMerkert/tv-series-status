@@ -131,3 +131,16 @@
 (define-presentation-method present (series (type tv-series) stream view &key)
   (declare (ignore view))
   (princ (series-title series) stream))
+
+;;; translate clicks to commands
+(define-presentation-to-command-translator filter-series
+    (tv-series com-series-filter tvs-display)
+    (object) (list object))
+
+(define-presentation-to-command-translator filter-season
+    (season-number com-season-filter tvs-display)
+    (object) (list object))
+
+(define-presentation-to-command-translator filter-date
+    (date-range com-series-date tvs-display)
+    (object) (list object))
