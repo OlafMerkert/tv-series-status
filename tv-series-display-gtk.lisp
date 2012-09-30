@@ -4,6 +4,7 @@
   (:nicknames :tvs-gtk)
   (:shadowing-import-from :gtk :range)
   (:use :cl :ol
+        :iterate
         :tvs-find
         :tvs-filter
         :gtk :gdk :gobject)
@@ -42,21 +43,21 @@ entries, and signals for the insertion of all the new entries."
   (let ((l-old (store-items-count store))
         (l-new (length new-item-array)))
     ;; signal deletion of all the rows
-    (loop for i from (- l-old 1) downto 0 do
-         (let ((path (make-instance 'tree-path)))
-           (setf (tree-path-indices path) (list i))
-          (emit-signal store "row-deleted" path)))
+    (iter (for i from (- l-old 1) downto 0)
+          (for path = (make-instance 'tree-path))
+          (setf (tree-path-indices path) (list i))
+          (emit-signal store "row-deleted" path))
     ;; replace the array
     (setf (slot-value store 'gtk::items) new-item-array)
     ;; signal creation of all the new rows
-    (loop for i from 0 below l-new do
-         (let ((path (make-instance 'tree-path))
-               (iter (make-instance 'tree-iter)))
-           (setf (tree-path-indices path) (list i))
-           (setf (tree-iter-stamp iter) 0
-                 (tree-iter-user-data iter) i)
+    (iter (for i from 0 below l-new)
+          (for path = (make-instance 'tree-path))
+          (for iter = (make-instance 'tree-iter))
+          (setf (tree-path-indices path) (list i))
+          (setf (tree-iter-stamp iter) 0
+                (tree-iter-user-data iter) i)
           (emit-signal store "row-inserted"
-                       path iter)))
+                       path iter))
     l-new))
 
 ;; todo put into ol-utils sometime

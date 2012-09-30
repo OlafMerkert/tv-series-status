@@ -3,6 +3,7 @@
 (defpackage :tv-series-display-web
   (:nicknames :tvs-web)
   (:use :cl :ol
+        :iterate
         :tvs-find
         :tvs-filter
         :cl-who)
@@ -81,11 +82,11 @@
      (:select
       :name "series"
       (:option :value "alle" "Alle")
-      (loop for series in tv-series-epguides do
-         (htm (:option :value (identifier series)
-                       :selected (if (eq (identifier series) current-series)
-                                     "selected")
-                       (esc (series-title series))))))
+      (iter (for series in tv-series-epguides)
+            (htm (:option :value (identifier series)
+                          :selected (if (eq (identifier series) current-series)
+                                        "selected")
+                          (esc (series-title series))))))
      (:input :type "radio" :name "time-range" :value "alles"
              :id "time-alles"
              :checked (if (eq time-range :alles) "checked"))

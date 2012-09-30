@@ -1,6 +1,7 @@
 (defpackage :tv-series-display-clim
   (:nicknames :tvs-clim)
   (:use :ol :clim :clim-lisp
+        :iterate
         :tvs-find)
   (:export
    :tv-series-display))
@@ -76,26 +77,26 @@
        (formatting-cell (pane) (princ "Ep" pane))
        (formatting-cell (pane) (princ "Titel" pane))
        (formatting-cell (pane) (princ "Erstausstrahlung" pane))))
-    (loop for episode across
-         (tvs-filter:filter-epi-array (selected-date-range *application-frame*)
-                                      (selected-series *application-frame*)
-                                      (selected-season *application-frame*)
-                                      tse-data) do
-         (formatting-row (pane)
-           (with-slots (series-title
-                        season-nr episode-nr
-                        episode-title
-                        air-date) episode
-             (formatting-cell (pane)
-               (present episode 'tv-series :stream pane))
-             (formatting-cell (pane)
-               (present season-nr 'season-number :stream pane))
-             (formatting-cell (pane)
-               (princ episode-nr pane))
-             (formatting-cell (pane)
-               (princ episode-title pane))
-             (formatting-cell (pane)
-               (print-date air-date pane)))))))
+    (iter (for episode in-vector
+               (tvs-filter:filter-epi-array (selected-date-range *application-frame*)
+                                            (selected-series *application-frame*)
+                                            (selected-season *application-frame*)
+                                            tse-data)) 
+          (formatting-row (pane)
+            (with-slots (series-title
+                         season-nr episode-nr
+                         episode-title
+                         air-date) episode
+              (formatting-cell (pane)
+                (present episode 'tv-series :stream pane))
+              (formatting-cell (pane)
+                (present season-nr 'season-number :stream pane))
+              (formatting-cell (pane)
+                (princ episode-nr pane))
+              (formatting-cell (pane)
+                (princ episode-title pane))
+              (formatting-cell (pane)
+                (print-date air-date pane)))))))
 
 (defun display-selection-filters (frame pane)
   (declare (ignore frame))
