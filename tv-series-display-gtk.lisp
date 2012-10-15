@@ -105,20 +105,22 @@ date range, only listing past, future or episodes from this week."
                :fill nil
                ;; Zeitraumauswahl
                ;; TODO Ausrichtung
-               (radio-button :label "Alles"       :var select-alles  :toggled t)   :expand nil
-               (radio-button :label "Vergangene"  :var select-past   :toggled nil) :expand nil
-               (radio-button :label "Diese Woche" :var select-week   :toggled nil) :expand nil
-               (radio-button :label "Zukünftige"  :var select-future :toggled nil) :expand nil
-               (button :label "Herunterladen" :var download-button) :expand nil)
+               (radio-button :label "Alles"         :var select-alles     :toggled t)   :expand nil
+               (radio-button :label "Vergangene"    :var select-past      :toggled nil) :expand nil
+               (radio-button :label "Diese Woche"   :var select-week      :toggled nil) :expand nil
+               (radio-button :label "Zukünftige"    :var select-future    :toggled nil) :expand nil
+               (radio-button :label "Gestern"       :var select-yesterday :toggled nil) :expand nil
+               (button       :label "Herunterladen" :var download-button) :expand nil)
               :expand nil
               (scrolled-window
                :hscrollbar-policy :automatic
                :vscrollbar-policy :automatic
                (tree-view :var view))))
       ;; setup radio-buttons
-      (setf (radio-button-group select-past)   (radio-button-group select-alles)
+      (setf (radio-button-group select-future) (radio-button-group select-week)
             (radio-button-group select-week)   (radio-button-group select-past)
-            (radio-button-group select-future) (radio-button-group select-week))
+            (radio-button-group select-past)   (radio-button-group select-alles)
+            (radio-button-group select-alles)  (radio-button-group select-yesterday))
       ;; load data from persistence if nothing is there
       (unless tse-data (load-tse-data))
       ;; setup models and their views
@@ -144,7 +146,9 @@ date range, only listing past, future or episodes from this week."
                                               ((toggle-button-active select-future)
                                                :future)
                                               ((toggle-button-active select-week)
-                                               :week))))
+                                               :week)
+                                              ((toggle-button-active select-yesterday)
+                                               :yesterday))))
 
                    (store-replace-all-items
                     (tree-view-model view)                     
@@ -152,7 +156,7 @@ date range, only listing past, future or episodes from this week."
         (on-clicked download-button
           (sb-thread:make-thread #'download-all-episodes)
           (apply-filters))
-        (bind-multi ((button select-alles select-past select-future select-week))
+        (bind-multi ((button select-alles select-past select-future select-week select-yesterday))
           (on-toggled button
             (when (toggle-button-active button)
               (apply-filters))))
