@@ -97,28 +97,35 @@
   week.")
 
 (defparameter date-filter-names
-  (list (list :alles "Alles" )
-        (list :future "Zukünftige"
-              :begin (from-today 0 nil)
-              :keep-unspec t
-              :sort? t)
-        (list :past "Vergangene"
-              :end (from-today 0 t))
-        (list :week "Diese Woche"
-              :begin (from-today (- time-distance))
-              :end   (from-today time-distance t)
-              :sort? t)
-        (list :yesterday "Gestern"
-              :begin (from-today -1)
-              :end (from-today 0)
-              :keep-unspec t)))
+  '((:alles "Alles" )
+    (:future "Zukünftige"
+     :begin (from-today 0 nil)
+     :keep-unspec t
+     :sort? t)
+    (:past "Vergangene"
+     :end (from-today 0 t))
+    (:week "Diese Woche"
+     :begin (from-today (- time-distance))
+     :end   (from-today time-distance t)
+     :sort? t)
+    (:yesterday "Gestern"
+     :begin (from-today -1)
+     :end (from-today 0)
+     :keep-unspec t)))
 
 (defun date-filter-name (keyword)
   (second (assoc keyword date-filter-names)))
 
+(defmacro date-filter-helper ()
+  `(ecase keyword
+     ,@(mapcar (lambda (spec)
+                 (destructuring-bind (kw str &rest params) spec
+                   (declare (ignore str))
+                   `(,kw (make-instance 'date-filter ,@params))))
+               date-filter-names)))
+
 (defun make-date-filter (keyword)
-  (apply #'make-instance 'date-filter
-         (cddr (assoc keyword date-filter-names))))
+  (date-filter-helper))
 
 ;;; filtering for seasons
 (defclass season-filter (sort-filter)
