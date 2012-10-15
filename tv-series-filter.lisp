@@ -4,10 +4,13 @@
   (:shadow :filter :sort)
   (:nicknames :tvs-filter)
   (:use :cl :ol
+        :ol-date-utils
         :tvs-find)
   (:export
    :alle
-   :filter-epi-array))
+   :filter-epi-array
+   :date-filter-name
+   :date-filter-names))
 
 (in-package :tvs-filter)
 
@@ -57,20 +60,20 @@
    (end            :initarg :end
                    :initform nil
                    :accessor end)
-   (remove-unspec :initarg :remove-unspec
+   (keep-unspec :initarg :keep-unspec
                   :initform nil
-                  :accessor remove-unspec))
+                  :accessor keep-unspec))
   (:documentation "only display episodes within a given time range."))
 
 (defmethod trivial-filter-p ((filter date-filter))
   (not (or (begin filter)
            (end filter)
-           (remove-unspec filter))))
+           (keep-unspec filter))))
 
 (defmethod test ((filter date-filter) (episode episode))
-  (with-slots (begin end remove-unspec) filter
+  (with-slots (begin end keep-unspec) filter
     (with-slots (air-date) episode
-      (cond ((not air-date) remove-unspec)
+      (cond ((not air-date) keep-unspec)
             ((and begin end) (local-time:timestamp<= begin air-date end))
             (end (local-time:timestamp<= air-date end))
             (begin (local-time:timestamp<= begin air-date))
@@ -93,20 +96,29 @@
   "How many days in the past and in the future belong to the current
   week.")
 
+(defparameter date-filter-names
+  (list (list :alles "Alles" )
+        (list :future "Zukünftige"
+              :begin (from-today 0 nil)
+              :keep-unspec t
+              :sort? t)
+        (list :past "Vergangene"
+              :end (from-today 0 t))
+        (list :week "Diese Woche"
+              :begin (from-today (- time-distance))
+              :end   (from-today time-distance t)
+              :sort? t)
+        (list :yesterday "Gestern"
+              :begin (from-today -1)
+              :end (from-today 0)
+              :keep-unspec t)))
+
+(defun date-filter-name (keyword)
+  (second (assoc keyword date-filter-names)))
+
 (defun make-date-filter (keyword)
-  (ecase keyword
-    (:alles (make-instance 'date-filter))
-    (:future (make-instance 'date-filter
-                            :begin (local-time:today) ; TODO early
-                            :remove-unspec t
-                            :sort? t))
-    (:past (make-instance 'date-filter
-                          :end (local-time:today) ; TODO late
-                          ))
-    (:week (make-instance 'date-filter
-                          :begin (local-time:timestamp- (local-time:today) time-distance :day)
-                          :end   (local-time:timestamp+ (local-time:today) time-distance :day)
-                          :sort? t))))
+  (apply #'make-instance 'date-filter
+         (cddr (assoc keyword date-filter-names))))
 
 ;;; filtering for seasons
 (defclass season-filter (sort-filter)
@@ -130,8 +142,8 @@
 ;;; actual filtering work
 (defun filter-epi-array (time-filter show-filter season-filter episodes)
   (let ((filters (remove-if #'trivial-filter-p
-                            (list (make-date-filter time-filter)
-                                  (make-show-filter show-filter)
+                            (list (make-date-filter   time-filter)
+                                  (make-show-filter   show-filter)
                                   (make-season-filter season-filter)))))
     (setf episodes
           (remove-if-not
@@ -141,4 +153,3 @@
     (dolist (f filters)
       (setf episodes (sort f episodes)))
     episodes))
-

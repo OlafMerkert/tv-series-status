@@ -21,17 +21,10 @@
   (declare (ignore view))
   (princ (series-title series) stream))
 
-(defparameter date-ranges 
-  '(:alles :past :week :future))
-
 (define-presentation-method present
     (object (type date-range) stream view &key)
   (princ
-   (ecase object
-     (:alles "Alles")
-     (:future "Zukünftige")
-     (:past "Vergangene")
-     (:week "Diese Woche"))
+   (tvs-filter:date-filter-name object)
    stream))
 
 (define-application-frame tvs-display ()
@@ -107,8 +100,8 @@
         (formatting-cell (pane)
           (princ "Zeiträume:" pane)))
       (formatting-cell (pane)
-        (dolist (range date-ranges)
-          (present range 'date-range :stream pane)
+        (dolist (range tvs-filter:date-filter-names)
+          (present (first range) 'date-range :stream pane)
           (princ "  " pane)))
       )
     ;; give choices for season-number
