@@ -38,10 +38,11 @@
   (let ((series-symbol (aif (find series tv-series-epguides :key (lambda (x) (mkstr (identifier x))) :test #'string-equal)
                             (identifier it)
                            'alle))
-        (time-range-symbol (cond ((string-equal time-range "past") :past)
-                                 ((string-equal time-range "future") :future)
-                                 ((string-equal time-range "week") :week)
-                                 (t :alles))))
+        (time-range-symbol (cond ((string-equal time-range "past")      :past)
+                                 ((string-equal time-range "future")    :future)
+                                 ((string-equal time-range "week")      :week)
+                                 ((string-equal time-range "yesterday") :yesterday)
+                                 (t                                     :alles))))
    (with-html
      :top
      (:html
@@ -81,29 +82,20 @@
      :action "/tv-series"
      (:select
       :name "series"
+      :onchange "this.form.submit()"
       (:option :value "alle" "Alle")
-      (iter (for series in tv-series-epguides)
-            (htm (:option :value (identifier series)
-                          :selected (if (eq (identifier series) current-series)
-                                        "selected")
-                          (esc (series-title series))))))
-     (:input :type "radio" :name "time-range" :value "alles"
-             :id "time-alles"
-             :checked (if (eq time-range :alles) "checked"))
-     (:label :for "time-alles" "Alles")
-     (:input :type "radio" :name "time-range" :value "past"
-             :id "time-past"
-             :checked (if (eq time-range :past) "checked"))
-     (:label :for "time-past" "Vergangene")
-     (:input :type "radio" :name "time-range" :value "future"
-             :id "time-future"
-             :checked (if (eq time-range :future) "checked"))
-     (:label :for "time-future" (esc "Zukünfige"))
-     (:input :type "radio" :name "time-range" :value "week"
-             :id "time-week"
-             :checked (if (eq time-range :week) "checked"))
-     (:label :for "time-week" "Diese Woche")
-
+      (dolist (series tv-series-epguides)
+        (htm (:option :value (identifier series)
+                      :selected (if (eq (identifier series) current-series)
+                                    "selected")
+                      (esc (series-title series))))))
+     (dolist (range-spec tvs-filter:date-filter-names)
+       (let ((input-id (mkstr 'time- (first range-spec))))
+         (htm (:input :type "radio" :name "time-range" :value (mkstr (first range-spec))
+                      :id input-id
+                      :checked (if (eq time-range (first range-spec)) "checked")
+                      :onchange "this.form.submit()")
+              (:label :for input-id (str (second range-spec))))))
      (:input :type "submit" :value "Aktualisieren"))
     #|(:form
      :method "get"
