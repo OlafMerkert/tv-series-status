@@ -71,7 +71,10 @@
      (nikita "Nikita" "http://epguides.com/Nikita/"
       "http://epguides.com/common/exportToCSV.asp?rage=25189")
      (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
-      "http://epguides.com/common/exportToCSV.asp?rage=23686"))))
+      "http://epguides.com/common/exportToCSV.asp?rage=23686")
+     (bitch "Don't trust the bitch in apartment 25"
+      "http://epguides.com/DontTrusttheBinApartment23/"
+      "http://epguides.com/common/exportToCSV.asp?rage=23727"))))
 
 (defparameter all-series
   (make-instance 'tv-series
