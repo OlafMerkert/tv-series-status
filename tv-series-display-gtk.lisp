@@ -81,11 +81,6 @@ entries, and signals for the insertion of all the new entries."
     (tree-view-column-add-attribute  column renderer "text" col-index)
     (tree-view-append-column view    column)))
 
-(defun add-cell-layout-column (view col-index)
-  (let ((renderer (make-instance 'cell-renderer-text)))
-    (cell-layout-pack-start      view renderer)
-    (cell-layout-add-attribute  view renderer "text" col-index)))
-
 (defun tv-series-display ()
   "Display a graphical interface for downloading and filtering
 episodes information.  It is possible to filter for series name and
