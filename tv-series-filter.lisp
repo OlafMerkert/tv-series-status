@@ -96,6 +96,7 @@
   "How many days in the past and in the future belong to the current
   week.")
 
+(ew
 (defparameter date-filter-names
   '((:alles "Alles" )
     (:future "Zukünftige"
@@ -111,7 +112,7 @@
     (:yesterday "Gestern"
      :begin (from-today -1)
      :end (from-today 0)
-     :keep-unspec t)))
+     :keep-unspec t))))
 
 (defun date-filter-name (keyword)
   (second (assoc keyword date-filter-names)))
