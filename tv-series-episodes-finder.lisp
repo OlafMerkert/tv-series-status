@@ -3,7 +3,8 @@
 (defpackage :tv-series-episodes-finder
   (:nicknames :tvs-find)
   (:use :cl :ol
-        :css-selectors)
+        :css-selectors
+        :ol-date-utils)
   (:export
    :episode-nr
    :air-date
@@ -203,14 +204,7 @@ url of the csv data from the overview page of the series."
       (t (setf day   17
                month 1
                year  70)))
-    (local-time:encode-timestamp
-     0 0 0 0
-     day
-     month
-     (cond ((>= year 100) year)
-           ((< year 30)
-            (+ 2000 year))
-           (t (+ 1900 year))))))
+    (encode-date day month year)))
 
 
 (defun strip-empty-episodes (epi-list)
