@@ -13,6 +13,7 @@
                "hunchentoot"
                "cl-who"
                "cl-gtk2-gtk"
+               "cl-gtk-utils"
                "mcclim")
   :components ((:file "tv-series-episodes-finder")
                (:file "tv-series-filter")
