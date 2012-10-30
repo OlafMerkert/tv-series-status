@@ -49,7 +49,11 @@
       ))
 
 (defun make-show-filter (show)
-  (make-instance 'show-filter :show show))
+  "SHOW must be either a show object or a show identifier."
+  (make-instance 'show-filter
+                 :show (if (symbolp show)
+                           show
+                           (identifier show))))
 
 
 ;;; filtering for dates
