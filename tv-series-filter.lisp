@@ -92,13 +92,14 @@
       (stable-sort object-seq #'time-compare :key #'air-date)
       object-seq))
 
-(defparameter time-distance 6
+(defparameter time-distance 5
   "How many days in the past and in the future belong to the current
   week.")
 
 (ew
 (defparameter date-filter-names
-  '((:alles "Alles" )
+  '((:alles "Alles"
+     :keep-unspec t)
     (:future "Zukünftige"
      :begin (from-today 0 nil)
      :keep-unspec t
@@ -111,8 +112,10 @@
      :sort? t)
     (:yesterday "Gestern"
      :begin (from-today -1)
-     :end (from-today 0)
-     :keep-unspec t))))
+     :end   (from-today -1))
+    (:today "Heute"
+     :begin (from-today 0)
+     :end   (from-today 0)))))
 
 (defun date-filter-name (keyword)
   (second (assoc keyword date-filter-names)))
