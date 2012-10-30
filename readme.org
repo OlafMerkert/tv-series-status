@@ -1,22 +1,30 @@
 * About TV Series Status
 
-Download csv data from epguides.com pages for TV episodes information and display the results in a simple GTK2 app or on a webpage with custom filters.
+Download csv data from epguides.com pages for TV episodes information
+and display the results in a simple GTK2 or CLIM app or on a webpage with custom filters.
 
 * Installation
 
 Currently, this application is only supported on SBCL (it specifically
-uses ~sb-thread:make-thread~).  Other CL implementations might work,
-as long as mcclim, cl-gtk2, cxml and hunchentoot are available and a more
+uses ~sb-thread:make-thread~). Other CL implementations might work, as
+long as mcclim, cl-gtk2, cxml and hunchentoot are available and a more
 general threading command is used.
 
-First, get [[http://www.quicklisp.org/][quicklisp]] up and running to automatically download all necessary dependencies.  Check that you have the GTK libraries and header files required by cl-gtk2.  Make sure to set up the init file of your CL implementation.
+First, get [[http://www.quicklisp.org/][quicklisp]] up and running to automatically download all
+necessary dependencies. Check that you have the GTK libraries and
+header files required by cl-gtk2. Make sure to set up the init file of
+your CL implementation.
 
-Currently, the most convenient way of installation is to clone ~ol-utils~ and ~tv-series-status~ into your ~<quicklisp>/local-projects~ folder.  When everything is in place, run ~make~ in order to compile a core for sbcl (not strictly necessary, but for instance cl-gtk2 takes a long time to load otherwise).
+Currently, the most convenient way of installation is to clone
+~ol-utils~, ~cl-gtk-utils~ and ~tv-series-status~ into your
+~<quicklisp>/local-projects~ folder. When everything is in place, run
+~make~ in order to compile a core for sbcl (not strictly necessary,
+but for instance cl-gtk2 takes a long time to load otherwise).
 
 With ~make update~, you can pull in any changes in from the online git
-repository.  Rebuild with ~make~ afterwards to make the changes live.
-Please note that you will have to update ~ol-utils~ manually (~cd~ to
-the source directory and invoke ~git pull~).
+repository. Rebuild with ~make~ afterwards to make the changes live.
+Please note that you will have to update ~ol-utils~ and ~cl-gtk-utils~
+manually (~cd~ to the source directory and invoke ~git pull~).
 
 * Running
 
@@ -24,8 +32,10 @@ Once the core is built, just execute ~./tvs.sh~ to start the clim
 interface (which exposes downloading of episode information in the UI).
 
 Currently, running outside of a UNIX environment is discouraged, as
-the downloaded data is automatically stored in the directory
-~/var/tmp/tse-data-store/~.
+the downloaded data is cached in the directory
+~/var/tmp/tse-data-store/~. If you run into trouble after upgrading
+the software, it might also help to delete the contents of this
+directory.
 
 The CLIM interface should be straightforward to use: just click on a
 series title to only show episodes from the selected series, similarly
