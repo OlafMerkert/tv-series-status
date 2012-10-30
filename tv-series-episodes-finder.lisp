@@ -95,26 +95,17 @@ given DOM-NODE."
       (rec dom-node))))
 
 ;; date formatting
+(declaim (inline string->date date->string))
 (defun string->date (string)
   "YYYY-MM-DD -> local-time object"
-  (local-time:encode-timestamp
-   0 0 0 0
-   (parse-integer (subseq string 8 10))
-   (parse-integer (subseq string 5 7))
-   (parse-integer (subseq string 0 4))))
+  (ol-date-utils:parse-date string))
 
 (defparameter wochentage #("So" "Mo" "Di" "Mi" "Do" "Fr" "Sa"))
 
 (defun date->string (date)
   "local-time object -> WT Ta.Mo.Jahr or ??? if date is NIL."
   (if date
-      (format nil
-              "~A ~2,'0D.~2,'0D.~4,'0D"
-              (aref wochentage
-                    (local-time:timestamp-day-of-week date))
-              (local-time:timestamp-day date)
-              (local-time:timestamp-month date)
-              (local-time:timestamp-year date))
+      (ol-date-utils:print-date date)
       "???"))
 
 (defun find-all-episodes (tv-series)
