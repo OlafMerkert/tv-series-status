@@ -72,12 +72,8 @@ date range, only listing past, future or episodes from this week."
       ;; load data from persistence if nothing is there
       (unless tse-data (load-tse-data))
       ;; setup models and their views
-      (setf (combo-box-model show-selector) (make-store 'series))
-      (setf (tree-view-model view) (make-store 'episodes tse-data))
-      (setup-tree-view 'episodes view)
-      (add-cell-layout-column show-selector 0)
-      ;; select the first entry
-      (setf (combo-box-active show-selector) 0)
+      (setup-combo-box 'series show-selector)
+      (setup-tree-view 'episodes (make-store 'episodes tse-data) view)
       ;; button action
       (labels ((apply-filters ()
                  (let* ((selected-show-index (combo-box-active show-selector))
