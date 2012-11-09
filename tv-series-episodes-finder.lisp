@@ -68,7 +68,7 @@
      (mental "The Mentalist" "http://epguides.com/Mentalist/"
       "http://epguides.com/common/exportToCSV.asp?rage=18967")
      (flash "Flashpoint" "http://epguides.com/Flashpoint/"
-      "http://epguides.com/common/exportToCSV.asp?rage=18531edited")
+      "http://epguides.com/common/exportToCSV.asp?rage=18531")
      (nikita "Nikita" "http://epguides.com/Nikita/"
       "http://epguides.com/common/exportToCSV.asp?rage=25189")
      (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
