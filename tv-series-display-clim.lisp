@@ -152,7 +152,7 @@
 
 (define-tvs-display-command (com-download-info :name "Lade aktuelle Sendezeiten"
                                                :menu t) ()
-  (sb-thread:make-thread #'download-all-episodes))
+  (funcall+thread #'download-all-episodes))
 
 ;;; translate clicks to commands
 (define-presentation-to-command-translator filter-series

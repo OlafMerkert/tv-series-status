@@ -98,7 +98,7 @@ date range, only listing past, future or episodes from this week."
                     (tree-view-model view)                     
                     (filter-epi-array selected-range selected-show 0 tse-data)))))
         (on-clicked download-button
-          (sb-thread:make-thread #'download-all-episodes)
+          (funcall+thread #'download-all-episodes)
           (apply-filters))
         (bind-multi ((button select-alles select-past select-future select-week select-yesterday select-today))
           (on-toggled button
