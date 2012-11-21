@@ -73,7 +73,7 @@
       "http://epguides.com/common/exportToCSV.asp?rage=25189")
      (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
       "http://epguides.com/common/exportToCSV.asp?rage=23686")
-     (bitch "Don't trust the bitch in apartment 25"
+     (bitch "Don't trust the bitch in apartment 23"
       "http://epguides.com/DontTrusttheBinApartment23/"
       "http://epguides.com/common/exportToCSV.asp?rage=23727"))))
 
@@ -192,7 +192,8 @@ url of the csv data from the overview page of the series."
   '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
 (defmethod extract-transform ((type (eql 'air-date)) string)
-  (let ((parts (split-sequence:split-sequence #\/ string))
+  (let ((parts (split-sequence:split-sequence #\/ string
+                                              :remove-empty-subseqs t))
         day month year)
     (case (length parts)
       ((2) (setf day   17
@@ -203,7 +204,7 @@ url of the csv data from the overview page of the series."
                  year  (parse-integer (elt parts 2))))
       (t (setf day   17
                month 1
-               year  70)))
+               year  20)))
     (encode-date day month year)))
 
 
