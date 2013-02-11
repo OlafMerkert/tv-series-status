@@ -3,7 +3,7 @@
 if [ $1 = general ]; then
     echo "General core"
     sbcl <<EOF
-(ql:quickload '(drakma cxml css-selectors local-time hunchentoot cl-who cl-gtk2-gtk mcclim))
+(ql:quickload '(drakma cxml local-time hunchentoot cl-who cl-gtk2-gtk mcclim))
 (sb-ext:save-lisp-and-die "general.core")
 EOF
 elif [ $1 = tvs ]; then

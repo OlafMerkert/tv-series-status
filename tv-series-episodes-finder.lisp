@@ -3,7 +3,6 @@
 (defpackage :tv-series-episodes-finder
   (:nicknames :tvs-find)
   (:use :cl :ol
-        :css-selectors
         :ol-date-utils)
   (:export
    :episode-nr
