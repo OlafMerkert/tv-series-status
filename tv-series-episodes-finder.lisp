@@ -22,7 +22,8 @@
    :episode
    :episode-title
    :alle
-   :all-series))
+   :all-series
+   :funcall+thread))
 
 (in-package :tvs-find)
 
@@ -223,3 +224,8 @@ information and store it both in a special var and in prevalence."
           #'find-all-episodes
           tv-series-epguides)))
   (save-tse-data))
+
+;;; make threading implementation dependend
+(defun funcall+thread (function)
+  #+sbcl (sb-thread:make-thread function)
+  #-sbcl (funcall function))
