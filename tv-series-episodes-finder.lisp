@@ -68,15 +68,16 @@
       "http://epguides.com/common/exportToCSV.asp?rage=28304")
      (mental "The Mentalist" "http://epguides.com/Mentalist/"
       "http://epguides.com/common/exportToCSV.asp?rage=18967")
-     (flash "Flashpoint" "http://epguides.com/Flashpoint/"
-      "http://epguides.com/common/exportToCSV.asp?rage=18531")
+     ;; (flash "Flashpoint" "http://epguides.com/Flashpoint/"
+     ;;  "http://epguides.com/common/exportToCSV.asp?rage=18531")
      (nikita "Nikita" "http://epguides.com/Nikita/"
       "http://epguides.com/common/exportToCSV.asp?rage=25189")
      (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
       "http://epguides.com/common/exportToCSV.asp?rage=23686")
-     (bitch "Don't trust the bitch in apartment 23"
-      "http://epguides.com/DontTrusttheBinApartment23/"
-      "http://epguides.com/common/exportToCSV.asp?rage=23727"))))
+     ;; (bitch "Don't trust the bitch in apartment 23"
+     ;;  "http://epguides.com/DontTrusttheBinApartment23/"
+     ;;  "http://epguides.com/common/exportToCSV.asp?rage=23727")
+     )))
 
 (defparameter all-series
   (make-instance 'tv-series
