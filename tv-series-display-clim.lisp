@@ -154,6 +154,9 @@
                                                :menu t) ()
   (funcall+thread #'download-all-episodes))
 
+(define-tvs-display-command (com-clear-cache :name "Cache leeren") ()
+  (tvs-find::clear-cache))
+
 ;;; translate clicks to commands
 (define-presentation-to-command-translator filter-series
     (tv-series com-filter-series tvs-display)

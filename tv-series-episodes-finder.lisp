@@ -227,6 +227,10 @@ information and store it both in a special var and in prevalence."
           tv-series-epguides)))
   (save-tse-data))
 
+(defun clear-cache ()
+  (setf tse-data #())
+  (save-tse-data))
+
 ;;; make threading implementation dependend
 (defun funcall+thread (function)
   #+sbcl (sb-thread:make-thread function)
