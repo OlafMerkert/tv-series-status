@@ -12,14 +12,22 @@
 
 (in-package :tvs-web)
 
+(defparameter current-server nil)
+
 (defun start-server ()
-  (hunchentoot:start (make-instance 'hunchentoot:easy-acceptor :port 8080))
-  (push
-   (hunchentoot:create-static-file-dispatcher-and-handler
-    "/tv-series/style.css"
-    #P"/home/olaf/Projekte/tv-series-status/style.css"
-    "text/css")
-   hunchentoot:*dispatch-table*))
+  (unless current-server
+    (setf current-server (make-instance 'hunchentoot:easy-acceptor :port 8080))
+   (push
+    (hunchentoot:create-static-file-dispatcher-and-handler
+     "/tv-series/style.css"
+     #P"/home/olaf/Projekte/tv-series-status/style.css"
+     "text/css")
+    hunchentoot:*dispatch-table*)
+   (hunchentoot:start current-server)))
+
+(defun start-server-and-open ()
+  (start-server)
+  (sb-ext:run-program "/usr/bin/xdg-open" (list "http://localhost:8080/tv-series")))
 
 (defparameter *html-output* nil)
 (setf cl-who::*indent* 4)
