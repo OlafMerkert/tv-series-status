@@ -42,6 +42,7 @@
                                  ((string-equal time-range "future")    :future)
                                  ((string-equal time-range "week")      :week)
                                  ((string-equal time-range "yesterday") :yesterday)
+                                 ((string-equal time-range "today")     :today)
                                  (t                                     :alles))))
    (with-html
      :top
