@@ -6,20 +6,26 @@ body {
 }
 
 .even {
-    background: lightgray;
+    background: #EAEAEA;
 }
 .odd {
-    
+    background: #FAFAFA;
 }
 table {
-    border-collapse: collapse;
+    /* border-collapse: collapse; */
+    border-collapse: none;
     margin: 1em;
+    border: 1px inset lightgray;
 }
 th, td {
-    border: 1px solid black;
+    /* border: 1px solid black; */
+    border: 1px outset lightgray;
     padding: 0.2em;
 }
-
+th {
+    color: #404040;
+    font-size: 100%;
+}
 .number {
     text-align: right;
     font-family: monospace;
@@ -38,8 +44,17 @@ h1, h2 {
 }
 
 form {
-    border: 1px inset gray;
+    border: 1px inset lightgray;
     display: inline;
     padding: 0.5em;
-    margin: 0.3em;
+    margin: 1em;
+    background: #FAFAFA;
+}
+
+input {
+    margin-left: 1em;
+}
+
+input[type="submit"] {
+    margin-left: 2em;
 }
