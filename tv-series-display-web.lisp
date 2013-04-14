@@ -8,7 +8,9 @@
         :tvs-filter
         :cl-who)
   (:export
-   :start-server))
+   :start-server
+   :stop-server
+   :start-server-and-open))
 
 (in-package :tvs-web)
 
@@ -24,6 +26,10 @@
      "text/css")
     hunchentoot:*dispatch-table*)
    (hunchentoot:start current-server)))
+
+(defun stop-server ()
+  (when current-server
+    (hunchentoot:stop current-server)))
 
 (defun start-server-and-open ()
   (start-server)
