@@ -1,5 +1,3 @@
-(in-package :cl-user)
-
 (defpackage :tv-series-episodes-finder
   (:nicknames :tvs-find)
   (:use :cl :ol
@@ -22,8 +20,7 @@
    :episode
    :episode-title
    :alle
-   :all-series
-   :funcall+thread))
+   :all-series))
 
 (in-package :tvs-find)
 
@@ -229,8 +226,3 @@ information and store it both in a special var and in prevalence."
 (defun clear-cache ()
   (setf tse-data #())
   (save-tse-data))
-
-;;; make threading implementation dependend
-(defun funcall+thread (function)
-  #+sbcl (sb-thread:make-thread function)
-  #-sbcl (funcall function))

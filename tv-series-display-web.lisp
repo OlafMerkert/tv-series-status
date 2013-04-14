@@ -33,7 +33,7 @@
 
 (defun start-server-and-open ()
   (start-server)
-  (sb-ext:run-program "/usr/bin/xdg-open" (list "http://localhost:8080/tv-series")))
+  (run-program "/usr/bin/xdg-open" "http://localhost:8080/tv-series"))
 
 (defparameter *html-output* nil)
 (setf cl-who::*indent* 4)
