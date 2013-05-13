@@ -73,6 +73,8 @@
      ;; (bitch "Don't trust the bitch in apartment 23"
      ;;  "http://epguides.com/DontTrusttheBinApartment23/"
      ;;  "http://epguides.com/common/exportToCSV.asp?rage=23727")
+     (thrones "Game of Thrones" "http://epguides.com/GameofThrones/"
+      "http://epguides.com/common/exportToCSV.asp?rage=24493")
      )))
 
 (defparameter all-series
