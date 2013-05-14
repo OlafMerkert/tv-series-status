@@ -63,7 +63,13 @@
      (:html
       (:head
        (:title #1=(esc "TV Serien Status Monitor"))
-       (:link :rel "stylesheet" :type "text/css" :href "/tv-series/style.css"))
+       (:link :rel "stylesheet" :type "text/css" :href "/tv-series/style.css")
+       (:script :type "text/javascript"
+                "function selectShow(identifier) {
+document.forms[0].series.value = identifier;
+document.forms[0].submit();
+} "))
+      
       (:body
        (:h1 #1#)
        (range-select-form series-symbol time-range-symbol)
@@ -71,7 +77,8 @@
        (:table
         (:thead
          (:tr :class "even"
-              (:th "Serie")
+              (:th :onclick "selectShow(\"ALLE\");"
+               "Serie")
               (:th "Se")
               (:th "Ep")
               (:th "Titel")
@@ -120,7 +127,8 @@
 (defun episode-html-row (episode)
   (with-html
     (:tr :class (if *even-row* "even" "odd")
-     (:td :class "title"
+         (:td :class "title"
+              :onclick (conc "selectShow(\"" (mkstr (identifier episode)) "\");")
           (esc (series-title episode)))
      (:td :class "number"
           (fmt "~D" (season-nr episode)))
