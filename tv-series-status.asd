@@ -12,6 +12,7 @@
                "local-time"
                "hunchentoot"
                "cl-who"
+               "web-utils"
                ;;"cl-gtk2-gtk"
                ;;"cl-gtk-utils"
                "mcclim")

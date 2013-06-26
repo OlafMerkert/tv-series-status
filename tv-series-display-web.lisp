@@ -7,6 +7,7 @@
         :tvs-find
         :tvs-filter
         :cl-who)
+  (:import-from :web-utils :stop-server)
   (:export
    :start-server
    :stop-server
@@ -14,22 +15,11 @@
 
 (in-package :tvs-web)
 
-(defparameter current-server nil)
-
 (defun start-server ()
-  (unless current-server
-    (setf current-server (make-instance 'hunchentoot:easy-acceptor :port 8080))
-   (push
-    (hunchentoot:create-static-file-dispatcher-and-handler
-     "/tv-series/style.css"
-     #P"/home/olaf/Projekte/tv-series-status/style.css"
-     "text/css")
-    hunchentoot:*dispatch-table*)
-   (hunchentoot:start current-server)))
-
-(defun stop-server ()
-  (when current-server
-    (hunchentoot:stop current-server)))
+  (web-utils:setup-static-content
+   "/tv-series/style.css"
+   #P"/home/olaf/Projekte/tv-series-status/style.css")
+  (web-utils:start-server))
 
 (defun start-server-and-open ()
   (start-server)
