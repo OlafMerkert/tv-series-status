@@ -75,6 +75,8 @@
      ;;  "http://epguides.com/common/exportToCSV.asp?rage=23727")
      (thrones "Game of Thrones" "http://epguides.com/GameofThrones/"
       "http://epguides.com/common/exportToCSV.asp?rage=24493")
+     (onceupon "Once upon a time" "http://epguides.com/OnceUponaTime"
+      "http://epguides.com/common/exportToCSV.asp?rage=28385")
      )))
 
 (defparameter all-series
@@ -121,9 +123,9 @@ given DOM-NODE."
 of a selected series from epguides.com.  This function extracts the
 url of the csv data from the overview page of the series."
   (let* ((document (chtml:parse
-                   (drakma:http-request
-                    (information-page-url (get-series-by-id id)))
-                   (cxml-dom:make-dom-builder)))
+                    (drakma:http-request
+                     (information-page-url (get-series-by-id id)))
+                    (cxml-dom:make-dom-builder)))
          (csv-url (find-if (lambda (x)
                              (search "CSV" x))
                            (mapcar (lambda (x) (dom:get-attribute x "href"))
