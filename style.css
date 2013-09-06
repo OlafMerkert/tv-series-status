@@ -63,3 +63,10 @@ input[type="submit"] {
     margin-left: 8em;
     font-style: italic;
 }
+
+.help {
+    margin-left: 6em;
+    font-size: 80%;
+    color: darkgray;
+    width: 30em;
+}

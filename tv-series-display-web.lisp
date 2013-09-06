@@ -69,6 +69,10 @@ document.forms[0].submit();
         (if (length=0 episodes)
             (htm (:p :class "notfound" "Keine Episoden gefunden .."))
             (htm
+             (:p :class "help"
+                 "Klicke auf einen Seriennamen, um nach der Serie zu
+                 filtern. Klicke auf die Titelzelle &quot;Serie&quot;,
+                 um die Filterung aufzuheben.")
              (:table
               (:thead
                (:tr :class "even"
@@ -86,6 +90,8 @@ document.forms[0].submit();
     ()
   #|(download-all-episodes)|#
   (hunchentoot:redirect "/tv-series"))
+
+;; TODO filter by season (using clicks)
 
 (defun range-select-form (current-series time-range)
   (with-html
