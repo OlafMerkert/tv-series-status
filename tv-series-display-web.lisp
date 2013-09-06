@@ -37,50 +37,50 @@
 
 (defparameter *even-row* nil)
 
+(defmacro time-range-symbol-helper ()
+  `(cond ,@(mapcar #`((string-equal time-range ,(mkstr (first a1))) ,(first a1))
+                   date-filter-names)
+         (t :alles)))
+
+
 (hunchentoot:define-easy-handler (tv-series-display :uri "/tv-series")
     (series time-range)
-  (let ((series-symbol (aif (find series tv-series-epguides :key (lambda (x) (mkstr (identifier x))) :test #'string-equal)
-                            (identifier it)
-                           'alle))
-        (time-range-symbol (cond ((string-equal time-range "past")      :past)
-                                 ((string-equal time-range "future")    :future)
-                                 ((string-equal time-range "week")      :week)
-                                 ((string-equal time-range "yesterday") :yesterday)
-                                 ((string-equal time-range "today")     :today)
-                                 (t                                     :alles))))
-   (with-html
-     :top
-     (:html
-      (:head
-       (:title #1=(esc "TV Serien Status Monitor"))
-       (:link :rel "stylesheet" :type "text/css" :href "/tv-series/style.css")
-       (:script :type "text/javascript"
-                "function selectShow(identifier) {
+  (let* ((series-symbol (aif (find series tv-series-epguides :key (lambda (x) (mkstr (identifier x))) :test #'string-equal)
+                             (identifier it)
+                             'alle))
+         (time-range-symbol (time-range-symbol-helper))
+         (episodes (filter-epi-array time-range-symbol series-symbol 0 tse-data) ))
+    (with-html
+      :top
+      (:html
+       (:head
+        (:title #1=(esc "TV Serien Status Monitor"))
+        (:link :rel "stylesheet" :type "text/css" :href "/tv-series/style.css")
+        (:script :type "text/javascript"
+                 "function selectShow(identifier) {
 document.forms[0].series.value = identifier;
 document.forms[0].submit();
 } "))
       
-      (:body
-       (:h1 #1#)
-       (range-select-form series-symbol time-range-symbol)
-       (:h2 "Liste der Episoden")
-       (:table
-        (:thead
-         (:tr :class "even"
-              (:th :onclick "selectShow(\"ALLE\");"
-               "Serie")
-              (:th "Se")
-              (:th "Ep")
-              (:th "Titel")
-              (:th "Erstausstrahlung")))
-        (:tbody
-         (setf *even-row* nil)
-         (map nil #'episode-html-row
-              (filter-epi-array
-               time-range-symbol
-               series-symbol
-               0
-               tse-data)))))))))
+       (:body
+        (:h1 #1#)
+        (range-select-form series-symbol time-range-symbol)
+        (:h2 "Liste der Episoden")
+        (if (length=0 episodes)
+            (htm (:p :class "notfound" "Keine Episoden gefunden .."))
+            (htm
+             (:table
+              (:thead
+               (:tr :class "even"
+                    (:th :onclick "selectShow(\"ALLE\");"
+                         "Serie")
+                    (:th "Se")
+                    (:th "Ep")
+                    (:th "Titel")
+                    (:th "Erstausstrahlung")))
+              (:tbody
+               (setf *even-row* nil)
+               (map nil #'episode-html-row episodes))))))))))
 
 (hunchentoot:define-easy-handler (tv-series-download :uri "/tv-series/download")
     ()

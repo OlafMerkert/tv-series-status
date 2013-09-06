@@ -110,6 +110,10 @@
      :sort? t)
     (:past "Vergangene"
      :end (from-today 0 t))
+    (:month "Dieser Monat"
+     :begin (from-today -20)
+     :end (from-today 20 t)
+     :sort? t)
     (:week "Diese Woche"
      :begin (from-today (- time-distance))
      :end   (from-today time-distance t)

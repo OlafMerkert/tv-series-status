@@ -58,3 +58,8 @@ input {
 input[type="submit"] {
     margin-left: 2em;
 }
+
+.notfound {
+    margin-left: 8em;
+    font-style: italic;
+}
