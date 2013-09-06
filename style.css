@@ -66,7 +66,11 @@ input[type="submit"] {
 
 .help {
     margin-left: 6em;
+    margin-top: -1ex;
+    margin-bottom: 4ex;
     font-size: 80%;
     color: darkgray;
-    width: 30em;
+    width: 20em;
+    float: left;
+    text-align: justify;
 }
