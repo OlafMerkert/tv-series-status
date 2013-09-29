@@ -45,7 +45,7 @@ h1, h2 {
 
 form {
     border: 1px inset lightgray;
-    display: inline;
+    display: block;
     padding: 0.5em;
     margin: 1em;
     background: #FAFAFA;

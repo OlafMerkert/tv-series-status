@@ -100,9 +100,15 @@ function selectSeason(nr) {
                (setf *even-row* nil)
                (map nil #'episode-html-row episodes))))))))))
 
+(defvar download-thread-active nil)
+
 (hunchentoot:define-easy-handler (tv-series-download :uri "/tv-series/download")
     ()
-  #|(download-all-episodes)|#
+  (funcall+thread (lambda ()
+                    (unless download-thread-active
+                      (setf download-thread-active t)
+                      (download-all-episodes)
+                      (setf download-thread-active nil))))
   (hunchentoot:redirect "/tv-series"))
 
 ;; TODO filter by season (using clicks)
@@ -133,10 +139,10 @@ function selectSeason(nr) {
                       :onchange "this.form.submit()")
               (:label :for input-id (str (second range-spec))))))
      (:input :type "submit" :value "Aktualisieren"))
-    #|(:form
+    (:form
      :method "get"
      :action "/tv-series/download"
-     (:input :type "submit" :value "Herunterladen"))|#))
+     (:input :type "submit" :value "Herunterladen"))))
 
 (defun episode-html-row (episode)
   (with-html
