@@ -230,3 +230,7 @@ information and store it both in a special var and in prevalence."
 (defun clear-cache ()
   (setf tse-data #())
   (save-tse-data))
+
+(defun open-series-page (series-id)
+  (run-program "/usr/bin/xdg-open"
+               (information-page-url (get-series-by-id series-id))))
