@@ -86,7 +86,7 @@ function selectSeason(nr) {
                  "Klicke auf eine Seasonnummer, um nach der Season zu
                  filtern. Klicke auf die Titelzelle &quot;Se&quot;, um
                  die Filterung aufzuheben.")
-             (:table :style "clear: both;"
+             (:table :class "episodes" :style "clear: both;"
               (:thead
                (:tr :class "even"
                     (:th :onclick "selectShow(\"ALLE\");"
@@ -125,18 +125,25 @@ function selectSeason(nr) {
      (:input :type "text" :name "season"
              :size 2
              :value (if (zerop current-season) "" (mkstr current-season)))
-     (dolist (range-spec tvs-filter:date-filter-names)
-       (let ((input-id (mkstr 'time- (first range-spec))))
-         (htm (:input :type "radio" :name "time-range" :value (mkstr (first range-spec))
-                      :id input-id
-                      :checked (if (eq time-range (first range-spec)) "checked")
-                      :onchange "this.form.submit()")
-              (:label :for input-id (str (second range-spec))))))
+     (:table
+      :class "form"
+      (dolist (row (splitn tvs-filter:date-filter-names 3))
+        (htm (:tr
+              (dolist (range-spec row)
+                (let ((input-id (mkstr 'time- (first range-spec))))
+                  (htm (:td
+                        (:input :type "radio" :name "time-range"
+                                :value (mkstr (first range-spec))
+                                :id input-id
+                                :checked (if (eq time-range (first range-spec)) "checked")
+                                :onchange "this.form.submit()"))
+                       (:td
+                        (:label :for input-id (str (second range-spec)))))))))))
      (:input :type "submit" :value "Aktualisieren"))
     #|(:form
-     :method "get"
-     :action "/tv-series/download"
-     (:input :type "submit" :value "Herunterladen"))|#))
+    :method "get"
+    :action "/tv-series/download"
+    (:input :type "submit" :value "Herunterladen"))|#))
 
 (defun episode-html-row (episode)
   (with-html

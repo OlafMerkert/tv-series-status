@@ -11,18 +11,18 @@ body {
 .odd {
     background: #FAFAFA;
 }
-table {
+table.episodes {
     /* border-collapse: collapse; */
     border-collapse: none;
     margin: 1em;
     border: 1px inset lightgray;
 }
-th, td {
+table.episodes th, table.episodes td {
     /* border: 1px solid black; */
     border: 1px outset lightgray;
     padding: 0.2em;
 }
-th {
+table.episodes th {
     color: #404040;
     font-size: 100%;
 }
@@ -45,7 +45,7 @@ h1, h2 {
 
 form {
     border: 1px inset lightgray;
-    display: inline;
+    display: block;
     padding: 0.5em;
     margin: 1em;
     background: #FAFAFA;
@@ -73,4 +73,8 @@ input[type="submit"] {
     width: 20em;
     float: left;
     text-align: justify;
+}
+
+table.form {
+    display: inline;
 }
