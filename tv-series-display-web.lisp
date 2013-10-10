@@ -105,7 +105,6 @@ function selectSeason(nr) {
   #|(download-all-episodes)|#
   (hunchentoot:redirect "/tv-series"))
 
-;; TODO filter by season (using clicks)
 
 (defun range-select-form (current-series current-season time-range)
   (with-html
@@ -115,6 +114,7 @@ function selectSeason(nr) {
      (:select
       :name "series"
       :onchange "this.form.submit()"
+      :size 3
       (:option :value "alle" "Alle")
       (dolist (series tv-series-epguides)
         (htm (:option :value (identifier series)

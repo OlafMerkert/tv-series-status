@@ -78,3 +78,7 @@ input[type="submit"] {
 table.form {
     display: inline;
 }
+
+select {
+    vertical-align: top;
+}
