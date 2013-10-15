@@ -15,6 +15,9 @@
 
 (in-package :tvs-web)
 
+(eval-when (:load-toplevel :execute)
+(web-utils:register-web-application "TV Serien Status Monitor" "/tv-series"))
+
 (defun start-server ()
   (web-utils:setup-static-content
    "/tv-series/style.css"
