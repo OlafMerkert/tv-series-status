@@ -111,6 +111,7 @@ function selectSeason(nr) {
                     (unless download-thread-active
                       (setf download-thread-active t)
                       (download-all-episodes)
+                      (format *standard-output* "~&Updated TV series database~%")
                       (setf download-thread-active nil))))
   (hunchentoot:redirect "/tv-series"))
 

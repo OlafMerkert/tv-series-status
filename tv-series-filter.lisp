@@ -123,7 +123,10 @@
      :end   (from-today -1))
     (:today "Heute"
      :begin (from-today 0)
-     :end   (from-today 0)))))
+     :end   (from-today 0))
+    (:tomorrow "Morgen"
+     :begin (from-today 1)
+     :end (from-today 1)))))
 
 (defun date-filter-name (keyword)
   (second (assoc keyword date-filter-names)))
