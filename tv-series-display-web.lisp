@@ -11,7 +11,8 @@
   (:export
    :start-server
    :stop-server
-   :start-server-and-open))
+   :start-server-and-open
+   :toggle-downloading))
 
 (in-package :tvs-web)
 
@@ -103,7 +104,15 @@ function selectSeason(nr) {
                (setf *even-row* nil)
                (map nil #'episode-html-row episodes))))))))))
 
-(defvar download-thread-active nil)
+(defvar download-thread-active t
+  "Set this variable to nil in order to allow downloading current
+  series data.")
+
+(defun toggle-downloading ()
+  (if (notf download-thread-active)
+      (princ "Downloading disabled")
+      (princ "Downloading enabled"))
+  (not download-thread-active))
 
 (hunchentoot:define-easy-handler (tv-series-download :uri "/tv-series/download")
     ()
@@ -150,10 +159,11 @@ function selectSeason(nr) {
                        (:td
                         (:label :for input-id (str (second range-spec)))))))))))
      (:input :type "submit" :value "Aktualisieren"))
-    (:form
-     :method "get"
-     :action "/tv-series/download"
-     (:input :type "submit" :value "Herunterladen"))))
+    (unless download-thread-active
+      (htm (:form
+            :method "get"
+            :action "/tv-series/download"
+            (:input :type "submit" :value "Herunterladen"))))))
 
 (defun episode-html-row (episode)
   (with-html
