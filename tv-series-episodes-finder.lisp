@@ -20,7 +20,9 @@
    :episode
    :episode-title
    :alle
-   :all-series))
+   :all-series
+   :schedule-download
+   :unschedule-all))
 
 (in-package :tvs-find)
 
@@ -226,6 +228,20 @@ information and store it both in a special var and in prevalence."
           #'find-all-episodes
           tv-series-epguides)))
   (save-tse-data))
+
+(defpar daily (clon:make-typed-cron-schedule :day-of-month '*))
+
+#+sbcl
+(defun schedule-download ()
+  (clon:schedule-function 'download-all-episodes
+                          (clon:make-scheduler daily :allow-now-p t)
+                          :name "TVS download"
+                          :thread t))
+
+#+sbcl
+(defun unschedule-all ()
+  (mapc #'sb-ext:unschedule-timer (sb-ext:list-all-timers)))
+
 
 (defun clear-cache ()
   (setf tse-data #())

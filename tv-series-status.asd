@@ -9,6 +9,7 @@
                "css-selectors"
                "cl-csv"
                "split-sequence"
-               "local-time")
+               "local-time"
+               "clon")
   :components ((:file "tv-series-episodes-finder")
                (:file "tv-series-filter")))
