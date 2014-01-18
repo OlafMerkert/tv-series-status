@@ -60,11 +60,11 @@
     (with-html
       :top
       (:html
-       (:head
-        (:title #1=(esc "TV Serien Status Monitor"))
-        (:link :rel "stylesheet" :type "text/css" :href "/tv-series/style.css")
-        (:script :type "text/javascript"
-                 "
+        (:head
+         (:title #1=(esc "TV Serien Status Monitor"))
+         (:link :rel "stylesheet" :type "text/css" :href "/tv-series/style.css")
+         (:script :type "text/javascript"
+                  "
 function selectShow(identifier) {
   document.forms[0].series.value = identifier;
   document.forms[0].submit();
@@ -75,34 +75,38 @@ function selectSeason(nr) {
 }
 "))
       
-       (:body
-        (:h1 #1#)
-        (range-select-form series-symbol season-nr time-range-symbol)
-        (:h2 "Liste der Episoden")
-        (if (length=0 episodes)
-            (htm (:p :class "notfound" "Keine Episoden gefunden .."))
-            (htm
-             (:p :class "help"
-                 "Klicke auf einen Seriennamen, um nach der Serie zu
+        (:body
+         (:h1 #1#)
+         (range-select-form series-symbol season-nr time-range-symbol)
+         (:h2 "Liste der Episoden")
+         (:p :class "last-update"
+             "Last update: " (str (aif (tvs-find:last-download-time)
+                                       (ol-date-utils:print-date-and-time it)
+                                       "none")))
+         (if (length=0 episodes)
+             (htm (:p :class "notfound" "Keine Episoden gefunden .."))
+             (htm
+              (:p :class "help"
+                  "Klicke auf einen Seriennamen, um nach der Serie zu
                  filtern. Klicke auf die Titelzelle &quot;Serie&quot;,
                  um die Filterung aufzuheben.")
-             (:p :class "help"
-                 "Klicke auf eine Seasonnummer, um nach der Season zu
+              (:p :class "help"
+                  "Klicke auf eine Seasonnummer, um nach der Season zu
                  filtern. Klicke auf die Titelzelle &quot;Se&quot;, um
                  die Filterung aufzuheben.")
-             (:table :class "episodes" :style "clear: both;"
-              (:thead
-               (:tr :class "even"
-                    (:th :onclick "selectShow(\"ALLE\");"
-                         "Serie")
-                    (:th :onclick "selectSeason(\"\");"
-                         "Se")
-                    (:th "Ep")
-                    (:th "Titel")
-                    (:th "Erstausstrahlung")))
-              (:tbody
-               (setf *even-row* nil)
-               (map nil #'episode-html-row episodes))))))))))
+              (:table :class "episodes" :style "clear: both;"
+                      (:thead
+                       (:tr :class "even"
+                            (:th :onclick "selectShow(\"ALLE\");"
+                                 "Serie")
+                            (:th :onclick "selectSeason(\"\");"
+                                 "Se")
+                            (:th "Ep")
+                            (:th "Titel")
+                            (:th "Erstausstrahlung")))
+                      (:tbody
+                       (setf *even-row* nil)
+                       (map nil #'episode-html-row episodes))))))))))
 
 (defvar download-thread-active t
   "Set this variable to nil in order to allow downloading current

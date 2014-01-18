@@ -82,3 +82,11 @@ table.form {
 select {
     vertical-align: top;
 }
+
+.last-update {
+    font-size: 70%;
+    font-style: italic;
+    text-align: right;
+    margin-right: 5em;
+    color: gray;
+}

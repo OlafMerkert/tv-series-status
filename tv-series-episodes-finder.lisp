@@ -22,7 +22,8 @@
    :alle
    :all-series
    :schedule-download
-   :unschedule-all))
+   :unschedule-all
+   :last-download-time))
 
 (in-package :tvs-find)
 
@@ -226,9 +227,17 @@ information and store it both in a special var and in prevalence."
         (apply #'concatenate 'vector
          (mapcar
           #'find-all-episodes
-          tv-series-epguides)))
+          tv-series-epguides))
+        (cl-prevalence:get-root-object prevalence-utils:storage
+                                       'last-download-time)
+        (local-time:now))
   (save-tse-data))
 
+(defun last-download-time ()
+  (cl-prevalence:get-root-object prevalence-utils:storage
+                                 'last-download-time))
+
+;;; regular downloading of new data
 (defpar daily (clon:make-typed-cron-schedule :day-of-month '*))
 
 #+sbcl
@@ -242,9 +251,10 @@ information and store it both in a special var and in prevalence."
 (defun unschedule-all ()
   (mapc #'sb-ext:unschedule-timer (sb-ext:list-all-timers)))
 
-
 (defun clear-cache ()
-  (setf tse-data #())
+  (setf tse-data #()
+        (cl-prevalence:get-root-object prevalence-utils:storage 'last-download-time)
+        nil)
   (save-tse-data))
 
 (defun open-series-page (series-id)
