@@ -44,7 +44,7 @@
 (defmacro time-range-symbol-helper ()
   `(cond ,@(mapcar #`((string-equal time-range ,(mkstr (first a1))) ,(first a1))
                    date-filter-names)
-         (t :alles)))
+         (t :week)))
 
 
 (hunchentoot:define-easy-handler (tv-series-display :uri "/tv-series")
@@ -78,11 +78,11 @@ function selectSeason(nr) {
         (:body
          (:h1 #1#)
          (range-select-form series-symbol season-nr time-range-symbol)
-         (:h2 "Liste der Episoden")
          (:p :class "last-update"
              "Last update: " (str (aif (tvs-find:last-download-time)
                                        (ol-date-utils:print-date-and-time it)
                                        "none")))
+         (:h2 "Liste der Episoden")
          (if (length=0 episodes)
              (htm (:p :class "notfound" "Keine Episoden gefunden .."))
              (htm
