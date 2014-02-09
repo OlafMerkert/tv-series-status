@@ -162,16 +162,28 @@
   (make-instance 'season-filter :season-nr season-nr))
 
 ;;; actual filtering work
+(defun apply-filter (filter episodes)
+  (remove-if-not (lambda (x) (test filter x)) episodes))
+
+(defmacro lengthcase (sequence &body cases)
+  ;; todo perhaps optimise the 0, 1 and t cases
+  `(case (length ,sequence)
+     ,@cases))
+
+(defun apply-filters (filters episodes)
+  (lengthcase filters
+    (0 episodes)
+    (1 (apply-filter (first filters) episodes))
+    (t (remove-if-not
+        (lambda (x) (every (lambda (f) (test f x)) filters))
+        episodes))))
+
 (defun filter-epi-array (time-filter show-filter season-filter episodes)
   (let ((filters (remove-if #'trivial-filter-p
                             (list (make-date-filter   time-filter)
                                   (make-show-filter   show-filter)
                                   (make-season-filter season-filter)))))
-    (setf episodes
-          (remove-if-not
-           (lambda (x)
-             (every (lambda (f) (test f x)) filters))
-           episodes))
+    (setf episodes (apply-filters filters episodes))
     (dolist (f filters)
       (setf episodes (sort f episodes)))
     episodes))
