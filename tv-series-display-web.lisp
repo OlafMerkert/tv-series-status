@@ -19,14 +19,12 @@
 (eval-when (:load-toplevel :execute)
 (web-utils:register-web-application "TV Serien Status Monitor" "/tv-series"))
 
-(defun start-server ()
-  (web-utils:setup-static-content
+(web-utils:setup-static-content
    "/tv-series/style.css"
    #P"/home/olaf/Projekte/tv-series-status/style.css")
-  (web-utils:start-server))
 
 (defun start-server-and-open ()
-  (start-server)
+  (web-utils:start-server)
   (run-program "/usr/bin/xdg-open" "http://localhost:8080/tv-series"))
 
 (defparameter *html-output* nil)
