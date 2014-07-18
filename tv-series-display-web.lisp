@@ -3,11 +3,11 @@
 (defpackage :tv-series-display-web
   (:nicknames :tvs-web)
   (:use :cl :ol
+        :web-utils
         :iterate
         :tvs-find
         :tvs-filter
         :cl-who)
-  (:import-from :web-utils :stop-server)
   (:export
    :start-server
    :stop-server
@@ -19,25 +19,13 @@
 (eval-when (:load-toplevel :execute)
 (web-utils:register-web-application "TV Serien Status Monitor" "/tv-series"))
 
-(defun start-server ()
-  (web-utils:setup-static-content
+(setup-static-content
    "/tv-series/style.css"
    #P"/home/olaf/Projekte/tv-series-status/style.css")
-  (web-utils:start-server))
 
 (defun start-server-and-open ()
   (start-server)
   (run-program "/usr/bin/xdg-open" "http://localhost:8080/tv-series"))
-
-(defparameter *html-output* nil)
-(setf cl-who::*indent* 4)
-
-(defmacro with-html (&body body)
-  (if (eq (first body) :top)
-      `(with-html-output-to-string (*html-output* nil :prologue t :indent cl-who::*indent*)
-         ,@(rest body))
-      `(with-html-output (*html-output*)
-         ,@body)))
 
 (defparameter *even-row* nil)
 
@@ -45,7 +33,6 @@
   `(cond ,@(mapcar #`((string-equal time-range ,(mkstr (first a1))) ,(first a1))
                    date-filter-names)
          (t :week)))
-
 
 (hunchentoot:define-easy-handler (tv-series-display :uri "/tv-series")
     (series season time-range)
@@ -57,56 +44,47 @@
          (time-range-symbol (time-range-symbol-helper))
          (episodes (filter-epi-array time-range-symbol series-symbol
                                      season-nr tse-data) ))
-    (with-html
-      :top
-      (:html
-        (:head
-         (:title #1=(esc "TV Serien Status Monitor"))
-         (:link :rel "stylesheet" :type "text/css" :href "/tv-series/style.css")
-         (:script :type "text/javascript"
-                  "
-function selectShow(identifier) {
-  document.forms[0].series.value = identifier;
-  document.forms[0].submit();
-}
-function selectSeason(nr) {
-  document.forms[0].season.value = nr;
-  document.forms[0].submit();
-}
-"))
-      
-        (:body
-         (:h1 #1#)
-         (range-select-form series-symbol season-nr time-range-symbol)
-         (:p :class "last-update"
-             "Last update: " (str (aif (tvs-find:last-download-time)
-                                       (ol-date-utils:print-date-and-time it)
-                                       "none")))
-         (:h2 "Liste der Episoden")
-         (if (length=0 episodes)
-             (htm (:p :class "notfound" "Keine Episoden gefunden .."))
-             (htm
-              (:p :class "help"
-                  "Klicke auf einen Seriennamen, um nach der Serie zu
+    (html/document (:title #1="TV Serien Status Monitor"
+                           :style "/tv-series/style.css")
+      (:script :type "text/javascript"
+               (str (ps:ps
+                      (defun select-show (identifier)
+                        (setf (ps:@ document forms 0 series value) identifier)
+                        (@@ documents forms 0 (submit)))
+                      (defun select-season (nr)
+                        (setf (ps:@ document forms 0 season value) nr)
+                        (@@ document forms 0 (submit))))))
+      (:h1 #1#)
+      (range-select-form series-symbol season-nr time-range-symbol)
+      (:p :class "last-update"
+          "Last update: " (str (aif (tvs-find:last-download-time)
+                                    (ol-date-utils:print-date-and-time it)
+                                    "none")))
+      (:h2 "Liste der Episoden")
+      (if (length=0 episodes)
+          (htm (:p :class "notfound" "Keine Episoden gefunden .."))
+          (htm
+           (:p :class "help"
+               "Klicke auf einen Seriennamen, um nach der Serie zu
                  filtern. Klicke auf die Titelzelle &quot;Serie&quot;,
                  um die Filterung aufzuheben.")
-              (:p :class "help"
-                  "Klicke auf eine Seasonnummer, um nach der Season zu
+           (:p :class "help"
+               "Klicke auf eine Seasonnummer, um nach der Season zu
                  filtern. Klicke auf die Titelzelle &quot;Se&quot;, um
                  die Filterung aufzuheben.")
-              (:table :class "episodes" :style "clear: both;"
-                      (:thead
-                       (:tr :class "even"
-                            (:th :onclick "selectShow(\"ALLE\");"
-                                 "Serie")
-                            (:th :onclick "selectSeason(\"\");"
-                                 "Se")
-                            (:th "Ep")
-                            (:th "Titel")
-                            (:th "Erstausstrahlung")))
-                      (:tbody
-                       (setf *even-row* nil)
-                       (map nil #'episode-html-row episodes))))))))))
+           (:table :class "episodes" :style "clear: both;"
+                   (:thead
+                    (:tr :class "even"
+                         (:th :onclick (ps:ps-inline (select-show "ALLE"))
+                              "Serie")
+                         (:th :onclick (ps:ps-inline (select-season ""))
+                              "Se")
+                         (:th "Ep")
+                         (:th "Titel")
+                         (:th "Erstausstrahlung")))
+                   (:tbody
+                    (setf *even-row* nil)
+                    (map nil #'episode-html-row episodes))))))))
 
 (defvar download-thread-active t
   "Set this variable to nil in order to allow downloading current
@@ -130,13 +108,13 @@ function selectSeason(nr) {
 
 
 (defun range-select-form (current-series current-season time-range)
-  (with-html
+  (html/node
     (:form
      :method "get"
      :action "/tv-series"
      (:select
       :name "series"
-      :onchange "this.form.submit()"
+      :onchange #2=(ps:ps-inline (@@ this form (submit)))
       :size 3
       (:option :value "alle" "Alle")
       (dolist (series tv-series-epguides)
@@ -159,7 +137,7 @@ function selectSeason(nr) {
                                 :value (mkstr (first range-spec))
                                 :id input-id
                                 :checked (if (eq time-range (first range-spec)) "checked")
-                                :onchange "this.form.submit()"))
+                                :onchange #2#))
                        (:td
                         (:label :for input-id (str (second range-spec)))))))))))
      (:input :type "submit" :value "Aktualisieren"))
@@ -170,13 +148,13 @@ function selectSeason(nr) {
             (:input :type "submit" :value "Herunterladen"))))))
 
 (defun episode-html-row (episode)
-  (with-html
+  (html/node
     (:tr :class (if *even-row* "even" "odd")
          (:td :class "title"
-              :onclick (conc "selectShow(\"" (mkstr (identifier episode)) "\");")
+              :onclick (ps:ps-inline* `(select-show ,(mkstr (identifier episode))))
           (esc (series-title episode)))
          (:td :class "number"
-              :onclick (conc "selectSeason(" (mkstr (season-nr episode)) ");")
+              :onclick (ps:ps-inline* `(select-season ,(mkstr (season-nr episode)))) 
           (fmt "~D" (season-nr episode)))
      (:td :class "number"
           (fmt "~2,'0D" (episode-nr episode)))
@@ -186,6 +164,4 @@ function selectSeason(nr) {
           (esc (date->string (air-date episode))))
      (notf *even-row*))))
 
-
-(defun length>0 (sequence)
-  (> (length sequence) 0))
+;;; todo export the list of episodes to org-mode (with dates)
