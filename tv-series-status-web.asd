@@ -3,6 +3,7 @@
                "hunchentoot"
                "cl-who"
                "web-utils"
-               "parenscript")
+               "parenscript"
+               "css-lite")
   :serial t
   :components ((:file "tv-series-display-web")))

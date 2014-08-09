@@ -23,7 +23,8 @@
    :all-series
    :schedule-download
    :unschedule-all
-   :last-download-time))
+   :last-download-time
+   :get-series-by-id))
 
 (in-package :tvs-find)
 
