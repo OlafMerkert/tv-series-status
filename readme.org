@@ -53,3 +53,12 @@ title/name.  The third is a link to the main page of the series at
 epguides.com; calling ~find-csv-url~ on it will yield the url of the
 csv data, which has to be put in the fourth place.  The third entry is
 currently not strictly necessary for normal operations.
+* Tasks
+** DONE hide instruction for user after they have seen them a couple of times
+   [2014-08-10 So 10:42]
+   [[file:~/Projekte/tv-series-status/tv-series-display-web.lisp::(:p%20:class%20"bg-info%20user-help"][file:~/Projekte/tv-series-status/tv-series-display-web.lisp::(:p :class "bg-info user-help"]]
++ keep track of this with a cookie
+* Tasks
+** TODO reduce font size in table
+   [2014-08-10 So 12:02]
+   [[file:~/Projekte/tv-series-status/tv-series-display-web.lisp::(:table]]
