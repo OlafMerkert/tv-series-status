@@ -37,10 +37,8 @@
          (time-range-symbol (time-range-symbol-helper))
          (episodes (filter-epi-array time-range-symbol series-symbol
                                      season-nr tse-data) ))
-    (html/document (:title #1="TV Serien Status Monitor"
-                      :style "/~olaf/style.css"
-                      :library :jquery
-                      :library :bootstrap)
+    (html/document+bs (:title #1="TV Serien Status Monitor"
+                         :style "/style/bootstrap-nonav.css")
       ;; todo move adjustments to bootstrap to web-utils
       (:script :type "text/javascript"
          (str (ps:ps
@@ -61,7 +59,9 @@
                       (setf cookie (@@ current-view-count (to-string)))
                       (when (> current-view-count 5)
                         (@@ ($ ".user-help") (hide)))))))))
-      (bootstrap:navbar #1#)
+      ;; (bootstrap:navbar #1#)
+      (breadcrumbs "?" "TV Serien Status Monitor"
+                   "#" (date-filter-name time-range-symbol))
       (bs-body
         (:h1 #1#)
         (:p :class "text-primary text-right"
