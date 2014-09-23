@@ -61,3 +61,7 @@ currently not strictly necessary for normal operations.
 ** DONE reduce font size in table
    [2014-08-10 So 12:02]
    [[file:~/Projekte/tv-series-status/tv-series-display-web.lisp::(:table]]
+** TODO implement proper cookie access
+   [2014-08-25 Mo 22:07]
+   [[file:~/Projekte/tv-series-status/tv-series-display-web.lisp::(symbol-macrolet%20((cookie%20(@%20document%20cookie)))][file:~/Projekte/tv-series-status/tv-series-display-web.lisp::(symbol-macrolet ((cookie (@ document cookie)))]]
+currently, we get into trouble with the session cookie stuff

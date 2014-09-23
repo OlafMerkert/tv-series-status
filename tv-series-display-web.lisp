@@ -141,8 +141,7 @@
             (:div :class "input-group"
                (:label :class "input-group-addon" :for "season" "Season:")
                (:input :type "number" :name "season"
-                  :class "form-control"
-                  :style "width: 4em"
+                  :class "form-control two-digit-num-input"
                   :size 2
                   :value (if (zerop current-season) "" (mkstr current-season)))))
          (:div :class "form-group"
