@@ -16,7 +16,8 @@
 (in-package :tvs-web)
 
 (eval-when (:load-toplevel :execute)
-(web-utils:register-web-application "TV Serien Status Monitor" "/tv-series"))
+  (web-utils:register-web-application "TV Serien Status Monitor" "/tv-series")
+  (load-web-library :jquery-cookie))
 
 (defun start-server-and-open ()
   (start-server)
