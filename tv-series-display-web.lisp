@@ -38,7 +38,8 @@
          (episodes (filter-epi-array time-range-symbol series-symbol
                                      season-nr tse-data) ))
     (html/document+bs (:title #1="TV Serien Status Monitor"
-                         :style "/style/bootstrap-nonav.css")
+                         :style "/style/bootstrap-nonav.css"
+                         :library :jquery-cookie)
       ;; todo move adjustments to bootstrap to web-utils
       (:script :type "text/javascript"
          (str (ps:ps
@@ -50,13 +51,16 @@
                   (@@ document forms 0 (submit)))
                 ;; after having seen the user-help messages 5 times,
                 ;; hide them
-                (symbol-macrolet ((cookie (@ document cookie)))
+                (flet ((cookie (&optional value)
+                         (if (not value)
+                             (@@ $ (cookie #2="tvswebuserhelpmessage"))
+                             (@@ $ (cookie #2# (@@ value (to-string))
+                                           (ps:create :expires 7 ))))))
                   (bind-event document ready ()
-                    (let ((current-view-count (if cookie
-                                                  (parse-int cookie)
-                                                  0)))
+                    (let* ((cookie (cookie))
+                           (current-view-count (if cookie (parse-int cookie) 0)))
                       (incf current-view-count)
-                      (setf cookie (@@ current-view-count (to-string)))
+                      (cookie current-view-count)
                       (when (> current-view-count 5)
                         (@@ ($ ".user-help") (hide)))))))))
       ;; (bootstrap:navbar #1#)
