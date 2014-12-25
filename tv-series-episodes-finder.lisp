@@ -83,16 +83,16 @@ url of the csv data from the overview page of the series."
          (fill-slots it)))
      (sort '(blackmirror
              BigBangTheory
-             HowIMetYourMother
+             ;; HowIMetYourMother
              TwoandaHalfMen
              NewGirl
              Mentalist
-             Flashpoint
-             Nikita
+             ;; Flashpoint
+             ;; Nikita
              CovertAffairs
-             DontTrusttheBinApartment23
+             ;; DontTrusttheBinApartment23
              GameofThrones
-             OnceUponaTime
+             ;; OnceUponaTime
              )
            #'string<=
            :key (compose #'string-downcase #'symbol-name))))
