@@ -41,47 +41,61 @@
    series-title))
 
 (defclass/f tv-series-epguides (tv-series)
-  (information-page-url
-   episode-list-url))
+  (episode-list-url))
 
 (create-standard-print-object tv-series identifier)
 
 ;;; retrieval from epguides
+(defpar tv-series-epguides
+    (mapcar
+     (lambda (id)
+       (aprog1 (make-instance 'tv-series-epguides :identifier id)
+         (fill-slots it)))
+     (sort '(blackmirror
+             BigBangTheory
+             HowIMetYourMother
+             TwoandaHalfMen
+             NewGirl
+             Mentalist
+             Flashpoint
+             Nikita
+             CovertAffairs
+             DontTrusttheBinApartment23
+             GameofThrones
+             OnceUponaTime
+             )
+           #'string<=
+           :key (compose #'string-downcase #'symbol-name))))
 
-(defun make-series-epguides (x)
-  (destructuring-bind (identifier title information-page-url episode-list-url) x
-    (make-instance 'tv-series-epguides
-                   :identifier identifier
-                   :series-title title
-                   :information-page-url information-page-url
-                   :episode-list-url episode-list-url)))
+(defmethod information-page-url ((tv-series tv-series-epguides))
+  (format nil "http://epguides.com/~(~A~)/" (identifier tv-series)))
 
-(defparameter tv-series-epguides
-  (mapcar #'make-series-epguides
-   '((tbbt "The Big Bang Theory" "http://epguides.com/BigBangTheory/"
-      "http://epguides.com/common/exportToCSV.asp?rage=8511")
-     (himym "How I Met Your Mother" "http://epguides.com/HowIMetYourMother/"
-      "http://epguides.com/common/exportToCSV.asp?rage=3918")
-     (taahm "Two and a Half Men" "http://epguides.com/TwoandaHalfMen/"
-      "http://epguides.com/common/exportToCSV.asp?rage=6454")
-     (ngirl "New Girl" "http://epguides.com/NewGirl/"
-      "http://epguides.com/common/exportToCSV.asp?rage=28304")
-     (mental "The Mentalist" "http://epguides.com/Mentalist/"
-      "http://epguides.com/common/exportToCSV.asp?rage=18967")
-     ;; (flash "Flashpoint" "http://epguides.com/Flashpoint/"
-     ;;  "http://epguides.com/common/exportToCSV.asp?rage=18531")
-     (nikita "Nikita" "http://epguides.com/Nikita/"
-      "http://epguides.com/common/exportToCSV.asp?rage=25189")
-     (covert "Covert Affairs" "http://epguides.com/CovertAffairs/"
-      "http://epguides.com/common/exportToCSV.asp?rage=23686")
-     ;; (bitch "Don't trust the bitch in apartment 23"
-     ;;  "http://epguides.com/DontTrusttheBinApartment23/"
-     ;;  "http://epguides.com/common/exportToCSV.asp?rage=23727")
-     (thrones "Game of Thrones" "http://epguides.com/GameofThrones/"
-      "http://epguides.com/common/exportToCSV.asp?rage=24493")
-     (onceupon "Once upon a time" "http://epguides.com/OnceUponaTime"
-      "http://epguides.com/common/exportToCSV.asp?rage=28385")
-     )))
+(defun url->dom (url)
+  (chtml:parse
+   (drakma:http-request url)
+   (cxml-dom:make-dom-builder)))
+
+(defun find-series-title (document)
+  (awhen (css-selectors:query "title" document)
+    (let ((html-title (dom:data (dom:first-child (first it)))))
+      (subseq html-title 0
+              (aif (position #\( html-title :from-end t)
+                   (- it 1) nil)))))
+
+(defun find-csv-url (document)
+  "Very conveniently, one can download a csv data file of all episodes
+of a selected series from epguides.com.  This function extracts the
+url of the csv data from the overview page of the series."
+  (find-if (lambda (x)
+             (search "CSV" x))
+           (mapcar (lambda (x) (dom:get-attribute x "href"))
+                   (css-selectors:query "a[onclick]" document))))
+
+(defmethod fill-slots ((tv-series tv-series-epguides))
+  (let ((document (url->dom (information-page-url tv-series))))
+    (with-slots (series-title episode-list-url) tv-series
+      (setf series-title (find-series-title document)
+            episode-list-url (find-csv-url document)))))
 
 (defparameter all-series
   (make-instance 'tv-series
@@ -121,25 +135,9 @@ given DOM-NODE."
    (download-csv tv-series)
    tv-series))
 
-
-(defun find-csv-url (id)
-  "Very conveniently, one can download a csv data file of all episodes
-of a selected series from epguides.com.  This function extracts the
-url of the csv data from the overview page of the series."
-  (let* ((document (chtml:parse
-                    (drakma:http-request
-                     (information-page-url (get-series-by-id id)))
-                    (cxml-dom:make-dom-builder)))
-         (csv-url (find-if (lambda (x)
-                             (search "CSV" x))
-                           (mapcar (lambda (x) (dom:get-attribute x "href"))
-                                   (query "a[onclick]" document)))))
-    csv-url))
-
 (defun download-csv (tv-series)
   "Download the csv and return it as lisp data."
   (cl-csv:read-csv (drakma:http-request (episode-list-url tv-series))))
-
 
 (defclass/f episode (tv-series prevalence-utils:prevailing)
   (season-nr
