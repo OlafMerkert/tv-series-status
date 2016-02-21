@@ -46,27 +46,6 @@
 (create-standard-print-object tv-series identifier)
 
 ;;; retrieval from epguides
-(defpar tv-series-epguides
-    (mapcar
-     (lambda (id)
-       (aprog1 (make-instance 'tv-series-epguides :identifier id)
-         (fill-slots it)))
-     (sort '(blackmirror
-             BigBangTheory
-             HowIMetYourMother
-             TwoandaHalfMen
-             NewGirl
-             Mentalist
-             Flashpoint
-             Nikita
-             CovertAffairs
-             DontTrusttheBinApartment23
-             GameofThrones
-             OnceUponaTime
-             )
-           #'string<=
-           :key (compose #'string-downcase #'symbol-name))))
-
 (defmethod information-page-url ((tv-series tv-series-epguides))
   (format nil "http://epguides.com/~(~A~)/" (identifier tv-series)))
 
@@ -96,6 +75,27 @@ url of the csv data from the overview page of the series."
     (with-slots (series-title episode-list-url) tv-series
       (setf series-title (find-series-title document)
             episode-list-url (find-csv-url document)))))
+
+(defpar tv-series-epguides
+    (mapcar
+     (lambda (id)
+       (aprog1 (make-instance 'tv-series-epguides :identifier id)
+         (fill-slots it)))
+     (sort '(blackmirror
+             BigBangTheory
+             ;; HowIMetYourMother
+             TwoandaHalfMen
+             NewGirl
+             Mentalist
+             ;; Flashpoint
+             ;; Nikita
+             CovertAffairs
+             ;; DontTrusttheBinApartment23
+             GameofThrones
+             ;; OnceUponaTime
+             )
+           #'string<=
+           :key (compose #'string-downcase #'symbol-name))))
 
 (defparameter all-series
   (make-instance 'tv-series
