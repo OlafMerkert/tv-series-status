@@ -71,10 +71,11 @@ url of the csv data from the overview page of the series."
                    (css-selectors:query "a[onclick]" document))))
 
 (defmethod fill-slots ((tv-series tv-series-epguides))
-  (let ((document (url->dom (information-page-url tv-series))))
+  (let* ((info-page (information-page-url tv-series))
+         (document (url->dom info-page)))
     (with-slots (series-title episode-list-url) tv-series
       (setf series-title (find-series-title document)
-            episode-list-url (find-csv-url document)))))
+            episode-list-url (concatenate 'string info-page (find-csv-url document))))))
 
 (defpar tv-series-epguides
     (mapcar
@@ -137,7 +138,7 @@ given DOM-NODE."
 
 (defun download-csv (tv-series)
   "Download the csv and return it as lisp data."
-  (cl-csv:read-csv (drakma:http-request (episode-list-url tv-series))))
+  (cl-csv:read-csv (collect-text (first (css-selectors:query "pre" (url->dom (episode-list-url tv-series)))))))
 
 (defclass/f episode (tv-series prevalence-utils:prevailing)
   (season-nr
