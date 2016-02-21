@@ -197,8 +197,7 @@ given DOM-NODE."
   '("Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 
 (defmethod extract-transform ((type (eql 'air-date)) string)
-  (let ((parts (split-sequence:split-sequence #\/ string
-                                              :remove-empty-subseqs t))
+  (let ((parts (ppcre:split "[ /]"  string))
         day month year)
     (case (length parts)
       ((2) (setf day   17
